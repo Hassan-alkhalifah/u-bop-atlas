@@ -1,0 +1,9 @@
+# Third-party copyrighted source documents: keep local, never commit or deploy
+sources/pdf/
+sources/renders/
+node_modules/
+dist/
+.env*
+
+# Local browser-test artefacts
+.playwright-mcp/

@@ -1,0 +1,2744 @@
+{
+  "sourceId": "SRC-CAM-CAT-2014",
+  "pdf": "cameron-u-um-bop-parts-catalog-2014.pdf",
+  "scope": "13-5/8\" 10,000 psi WP U BOP (Model II column where the catalog distinguishes models)",
+  "bonnetAndBodyParts": [
+    {
+      "item": 1,
+      "description": "Body",
+      "qtySingle": "1",
+      "qtyDouble": "1",
+      "partNumber10k": null,
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "-----",
+        "5000psi_ModelII": "-----",
+        "10000psi_ModelII": "-----",
+        "15000psi_ModelB": "-----"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 1
+      },
+      "recommendedSpare": false,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 2,
+      "description": "Intermediate Flange",
+      "qtySingle": "2",
+      "qtyDouble": "4",
+      "partNumber10k": "236499-34-11-02",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "030270-01-00-02",
+        "5000psi_ModelII": "030270-01-00-02",
+        "10000psi_ModelII": "236499-34-11-02",
+        "15000psi_ModelB": "2113728-01"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 2
+      },
+      "recommendedSpare": false,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 3,
+      "description": "Bonnet",
+      "qtySingle": "2",
+      "qtyDouble": "4",
+      "partNumber10k": "031241",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "030284-02",
+        "5000psi_ModelII": "615143-01",
+        "10000psi_ModelII": "031241",
+        "15000psi_ModelB": "691849"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 3
+      },
+      "recommendedSpare": false,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 4,
+      "description": "Ram Assembly",
+      "qtySingle": "2",
+      "qtyDouble": "4",
+      "partNumber10k": "644225-( )",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "644225-( )",
+        "5000psi_ModelII": "644225-( )",
+        "10000psi_ModelII": "644225-( )",
+        "15000psi_ModelB": "644228-( )"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 4
+      },
+      "recommendedSpare": false,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 5,
+      "description": "Piston, Operating",
+      "qtySingle": "2",
+      "qtyDouble": "4",
+      "partNumber10k": "2245074-01-01",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "679816",
+        "5000psi_ModelII": "2245199-01-01",
+        "10000psi_ModelII": "2245074-01-01",
+        "15000psi_ModelB": "698996-05"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 5
+      },
+      "recommendedSpare": false,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 6,
+      "description": "Cylinder, Operating",
+      "qtySingle": "2",
+      "qtyDouble": "4",
+      "partNumber10k": "030274-01-70",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "030274-01-70",
+        "5000psi_ModelII": "030274-01-70",
+        "10000psi_ModelII": "030274-01-70",
+        "15000psi_ModelB": "030274-06-70"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 6
+      },
+      "recommendedSpare": false,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 7,
+      "description": "Housing, Locking Screw",
+      "qtySingle": "2",
+      "qtyDouble": "4",
+      "partNumber10k": "030308-03",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "030308-03",
+        "5000psi_ModelII": "030308-03",
+        "10000psi_ModelII": "030308-03",
+        "15000psi_ModelB": "030308-06"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 7
+      },
+      "recommendedSpare": false,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 8,
+      "description": "Locking Screw",
+      "qtySingle": "2",
+      "qtyDouble": "4",
+      "partNumber10k": "030307",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "030307",
+        "5000psi_ModelII": "030307",
+        "10000psi_ModelII": "030307",
+        "15000psi_ModelB": "695234"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 8
+      },
+      "recommendedSpare": false,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 9,
+      "description": "Piston, Ram Change/Open",
+      "qtySingle": "2",
+      "qtyDouble": "4",
+      "partNumber10k": "031239-03",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "030310-03",
+        "5000psi_ModelII": "030310-03",
+        "10000psi_ModelII": "031239-03",
+        "15000psi_ModelB": "038847-03"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 9
+      },
+      "recommendedSpare": false,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 10,
+      "description": "Piston, Ram Change/Close",
+      "qtySingle": "2",
+      "qtyDouble": "4",
+      "partNumber10k": "031238-03",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "030309-03",
+        "5000psi_ModelII": "030309-03",
+        "10000psi_ModelII": "031238-03",
+        "15000psi_ModelB": "038848-03"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 10
+      },
+      "recommendedSpare": false,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 11,
+      "description": "Cylinder, Ram Change",
+      "qtySingle": "4",
+      "qtyDouble": "8",
+      "partNumber10k": "030273-01-70",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "030273-01-70",
+        "5000psi_ModelII": "030273-01-70",
+        "10000psi_ModelII": "030273-01-70",
+        "15000psi_ModelB": "030273-06-70"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 11
+      },
+      "recommendedSpare": false,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 12,
+      "description": "Bolt, Bonnet",
+      "qtySingle": "8",
+      "qtyDouble": "16",
+      "partNumber10k": "2010181-06-01",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "201081-06-01",
+        "5000psi_ModelII": "030312-01-00-01",
+        "10000psi_ModelII": "2010181-06-01",
+        "15000psi_ModelB": "030312-25-00-01"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 12
+      },
+      "recommendedSpare": false,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 13,
+      "description": "Stud, Locking Screw Housing",
+      "qtySingle": "16",
+      "qtyDouble": "32",
+      "partNumber10k": "219061-14-06-01",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "219065-14-06-01",
+        "5000psi_ModelII": "219065-14-06-01",
+        "10000psi_ModelII": "219061-14-06-01",
+        "15000psi_ModelB": "219065-14-07-51"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 13
+      },
+      "recommendedSpare": false,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 14,
+      "description": "Nut, Locking Screw Housing",
+      "qtySingle": "16",
+      "qtyDouble": "32",
+      "partNumber10k": "2709000-14-01",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "2709000-14-01",
+        "5000psi_ModelII": "2709000-14-01",
+        "10000psi_ModelII": "2709000-14-01",
+        "15000psi_ModelB": "2709000-14-01"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 14
+      },
+      "recommendedSpare": false,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 15,
+      "description": "Check Valve, Plastic Packing",
+      "qtySingle": "2",
+      "qtyDouble": "4",
+      "partNumber10k": "M517988",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "M517988",
+        "5000psi_ModelII": "M517988",
+        "10000psi_ModelII": "M517988",
+        "15000psi_ModelB": "M517988"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 15
+      },
+      "recommendedSpare": false,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 16,
+      "description": "Screw, Plastic Packing",
+      "qtySingle": "2",
+      "qtyDouble": "4",
+      "partNumber10k": "005940-09",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "005940-09",
+        "5000psi_ModelII": "005940-09",
+        "10000psi_ModelII": "005940-09",
+        "15000psi_ModelB": "005940-09"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 16
+      },
+      "recommendedSpare": false,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 17,
+      "description": "Pipe Plug, Plastic Packing",
+      "qtySingle": "2",
+      "qtyDouble": "4",
+      "partNumber10k": "005930-05-10",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "005930-05-10",
+        "5000psi_ModelII": "005930-05-10",
+        "10000psi_ModelII": "005930-05-10",
+        "15000psi_ModelB": "005930-05-10"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 17
+      },
+      "recommendedSpare": false,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 18,
+      "description": "Ring, Plastic Packing",
+      "qtySingle": "2",
+      "qtyDouble": "4",
+      "partNumber10k": "012469-24",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "012469-24",
+        "5000psi_ModelII": "012469-24",
+        "10000psi_ModelII": "012469-24",
+        "15000psi_ModelB": "012469-24"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 18
+      },
+      "recommendedSpare": true,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 19,
+      "description": "Ring, Plastic Energizing",
+      "qtySingle": "2",
+      "qtyDouble": "4",
+      "partNumber10k": "018586-01",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "018586-01",
+        "5000psi_ModelII": "018586-01",
+        "10000psi_ModelII": "018586-01",
+        "15000psi_ModelB": "018586-01"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 19
+      },
+      "recommendedSpare": true,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 20,
+      "description": "Seal Ring, Connecting Rod",
+      "qtySingle": "2",
+      "qtyDouble": "4",
+      "partNumber10k": "212741-36-00-01",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "212741-36-00-01",
+        "5000psi_ModelII": "212741-36-00-01",
+        "10000psi_ModelII": "212741-36-00-01",
+        "15000psi_ModelB": "212741-36-00-01"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 20
+      },
+      "recommendedSpare": true,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 21,
+      "description": "Ring Back-Up",
+      "qtySingle": "4",
+      "qtyDouble": "8",
+      "partNumber10k": "021792-26",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "-----",
+        "5000psi_ModelII": "-----",
+        "10000psi_ModelII": "021792-26",
+        "15000psi_ModelB": "021792-26"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 21
+      },
+      "recommendedSpare": true,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 22,
+      "description": "Seal, Bonnet",
+      "qtySingle": "2",
+      "qtyDouble": "4",
+      "partNumber10k": "644197-03-00-01",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "644197-03-00-01",
+        "5000psi_ModelII": "644197-03-00-01",
+        "10000psi_ModelII": "644197-03-00-01",
+        "15000psi_ModelB": "2010146-01"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 22
+      },
+      "recommendedSpare": true,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 23,
+      "description": "Pin, Ram Guide",
+      "qtySingle": "4",
+      "qtyDouble": "8",
+      "partNumber10k": "030313-01",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "030313-01",
+        "5000psi_ModelII": "030313-01",
+        "10000psi_ModelII": "030313-01",
+        "15000psi_ModelB": "030313-08"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 23
+      },
+      "recommendedSpare": false,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 24,
+      "description": "O-Ring, Operating Cylinder",
+      "qtySingle": "4",
+      "qtyDouble": "8",
+      "partNumber10k": "702645-45-51",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "702645-45-51",
+        "5000psi_ModelII": "702645-45-51",
+        "10000psi_ModelII": "702645-45-51",
+        "15000psi_ModelB": "702645-46-11"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 24
+      },
+      "recommendedSpare": true,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 25,
+      "description": "O-Ring, Operating Piston Rod to Int Flg",
+      "qtySingle": "2",
+      "qtyDouble": "4",
+      "partNumber10k": "018492-90",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "018492-90",
+        "5000psi_ModelII": "018492-90",
+        "10000psi_ModelII": "018492-90",
+        "15000psi_ModelB": "018492-90"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 25
+      },
+      "recommendedSpare": true,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 26,
+      "description": "Lip Seal, Operating Piston",
+      "qtySingle": "2",
+      "qtyDouble": "4",
+      "partNumber10k": "710538",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "710538",
+        "5000psi_ModelII": "710538",
+        "10000psi_ModelII": "710538",
+        "15000psi_ModelB": "710542"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 26
+      },
+      "recommendedSpare": true,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 27,
+      "description": "Seal Ring, Tail Rod",
+      "qtySingle": "2",
+      "qtyDouble": "4",
+      "partNumber10k": "212741-34-00-01",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "212741-34-00-01",
+        "5000psi_ModelII": "212741-34-00-01",
+        "10000psi_ModelII": "212741-34-00-01",
+        "15000psi_ModelB": "212741-45"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 27
+      },
+      "recommendedSpare": true,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 28,
+      "description": "O-Ring, Wiping",
+      "qtySingle": "2",
+      "qtyDouble": "4",
+      "partNumber10k": "702645-33-71",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "702645-33-71",
+        "5000psi_ModelII": "702645-33-71",
+        "10000psi_ModelII": "702645-33-71",
+        "15000psi_ModelB": "702645-34-21"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 28
+      },
+      "recommendedSpare": true,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 29,
+      "description": "O-Ring, Ram Change Piston to Body",
+      "qtySingle": "4",
+      "qtyDouble": "8",
+      "partNumber10k": "702645-32-81",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "702645-32-81",
+        "5000psi_ModelII": "702645-32-81",
+        "10000psi_ModelII": "702645-32-81",
+        "15000psi_ModelB": "702645-33-21"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 29
+      },
+      "recommendedSpare": true,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 30,
+      "description": "O-Ring, Ram Change Piston Rod to Int Flg",
+      "qtySingle": "4",
+      "qtyDouble": "8",
+      "partNumber10k": "702645-33-31",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "702645-33-31",
+        "5000psi_ModelII": "702645-33-31",
+        "10000psi_ModelII": "702645-33-31",
+        "15000psi_ModelB": "031423-21-13-85"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 30
+      },
+      "recommendedSpare": true,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 31,
+      "description": "O-Ring, Ram Change Cylinder to Int Flg",
+      "qtySingle": "4",
+      "qtyDouble": "8",
+      "partNumber10k": "702645-34-61",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "702645-34-61",
+        "5000psi_ModelII": "702645-34-61",
+        "10000psi_ModelII": "702645-34-61",
+        "15000psi_ModelB": "702645-35-41"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 31
+      },
+      "recommendedSpare": true,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 32,
+      "description": "O-Ring, Ram Change Cylinder to Bon- net",
+      "qtySingle": "4",
+      "qtyDouble": "8",
+      "partNumber10k": "702645-42-51",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "702645-42-51",
+        "5000psi_ModelII": "702645-42-51",
+        "10000psi_ModelII": "702645-42-51",
+        "15000psi_ModelB": "702645-43-41"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 32
+      },
+      "recommendedSpare": true,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 33,
+      "description": "O-Ring, Ram Change Piston",
+      "qtySingle": "4",
+      "qtyDouble": "8",
+      "partNumber10k": "702645-33-81",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "702645-33-81",
+        "5000psi_ModelII": "702645-33-81",
+        "10000psi_ModelII": "702645-33-81",
+        "15000psi_ModelB": "702645-34-41"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 33
+      },
+      "recommendedSpare": true,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 34,
+      "description": "O-Ring, Bonnet Bolt Retainer",
+      "qtySingle": "8",
+      "qtyDouble": "16",
+      "partNumber10k": "702645-23-91",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "702645-23-11",
+        "5000psi_ModelII": "702645-23-21",
+        "10000psi_ModelII": "702645-23-91",
+        "15000psi_ModelB": "702645-24-51"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 34
+      },
+      "recommendedSpare": true,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 35,
+      "description": "Cap Screw, Int Flange to Bonnet",
+      "qtySingle": "24",
+      "qtyDouble": "48",
+      "partNumber10k": "702585-25-00-54",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "702585-25-00-44",
+        "5000psi_ModelII": "702585-25-00-44",
+        "10000psi_ModelII": "702585-25-00-54",
+        "15000psi_ModelB": "702585-31-00-54"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 35
+      },
+      "recommendedSpare": false,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 36,
+      "description": "Gland, Bleeder",
+      "qtySingle": "2",
+      "qtyDouble": "4",
+      "partNumber10k": "017454-08",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "017454-08",
+        "5000psi_ModelII": "017454-08",
+        "10000psi_ModelII": "017454-08",
+        "15000psi_ModelB": "017454-08"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 36
+      },
+      "recommendedSpare": false,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 37,
+      "description": "Plug, Bleeder",
+      "qtySingle": "2",
+      "qtyDouble": "4",
+      "partNumber10k": "017454-09",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "017454-09",
+        "5000psi_ModelII": "017454-09",
+        "10000psi_ModelII": "017454-09",
+        "15000psi_ModelB": "017454-09"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 37
+      },
+      "recommendedSpare": false,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 38,
+      "description": "Lifting Eye",
+      "qtySingle": "2",
+      "qtyDouble": "2",
+      "partNumber10k": "011849-01",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "011849-01",
+        "5000psi_ModelII": "011849-01",
+        "10000psi_ModelII": "011849-01",
+        "15000psi_ModelB": "011849-01"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 38
+      },
+      "recommendedSpare": false,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 39,
+      "description": "Packing, Plastic",
+      "qtySingle": "10",
+      "qtyDouble": "20",
+      "partNumber10k": "07650-25",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "007650-25",
+        "5000psi_ModelII": "007650-25",
+        "10000psi_ModelII": "07650-25",
+        "15000psi_ModelB": "007650-25"
+      },
+      "inExplodedView": false,
+      "drawingRef": null,
+      "recommendedSpare": false,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 40,
+      "description": "Washer",
+      "qtySingle": "2",
+      "qtyDouble": "4",
+      "partNumber10k": "689523-01",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "689523-01",
+        "5000psi_ModelII": "689523-01",
+        "10000psi_ModelII": "689523-01",
+        "15000psi_ModelB": "689523-01"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 40
+      },
+      "recommendedSpare": false,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 41,
+      "description": "Ring, Retainer",
+      "qtySingle": "2",
+      "qtyDouble": "4",
+      "partNumber10k": "018572-85",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "018572-85",
+        "5000psi_ModelII": "018572-85",
+        "10000psi_ModelII": "018572-85",
+        "15000psi_ModelB": "018572-85"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 41
+      },
+      "recommendedSpare": false,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 42,
+      "description": "Wear Ring, Operating Piston",
+      "qtySingle": "2",
+      "qtyDouble": "4",
+      "partNumber10k": "049223-01",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "049223-01",
+        "5000psi_ModelII": "049223-01",
+        "10000psi_ModelII": "049223-01",
+        "15000psi_ModelB": "049223-04"
+      },
+      "inExplodedView": true,
+      "drawingRef": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 9,
+        "drawing": "SD17500",
+        "balloon": 42
+      },
+      "recommendedSpare": true,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    },
+    {
+      "item": 43,
+      "description": "Spacer, Shear",
+      "qtySingle": "--",
+      "qtyDouble": "--",
+      "partNumber10k": "687117-03",
+      "partNumberAllColumns": {
+        "3000psi_ModelII": "687117-03",
+        "5000psi_ModelII": "687117-03",
+        "10000psi_ModelII": "687117-03",
+        "15000psi_ModelB": "687117-05"
+      },
+      "inExplodedView": false,
+      "drawingRef": null,
+      "recommendedSpare": false,
+      "source": {
+        "sourceId": "SRC-CAM-CAT-2014",
+        "page": 12
+      }
+    }
+  ],
+  "operatingData": [
+    {
+      "page": 7,
+      "cells": [
+        "Operating Data & Fluid Requirements",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "page": 7,
+      "cells": [
+        "Bore Size and Working Pressure",
+        "",
+        "Gals to Open Pipe Rams (1 Set)",
+        "Gals to Close Pipe Rams (1 Set)",
+        "Locking Screw Turns (Each End)",
+        "",
+        "Closing Ratio",
+        "",
+        "Opening Ratio",
+        ""
+      ]
+    },
+    {
+      "page": 7,
+      "cells": [
+        "7-1/16\" All WP",
+        "",
+        "1.3",
+        "1.3",
+        "18",
+        "",
+        "6.9:1",
+        "",
+        "2.2:1",
+        ""
+      ]
+    },
+    {
+      "page": 7,
+      "cells": [
+        "13-5/8\" Except 15,000 psi",
+        "",
+        "5.5",
+        "5.8",
+        "32",
+        "",
+        "7.0:1",
+        "",
+        "2.3:1",
+        ""
+      ]
+    },
+    {
+      "page": 7,
+      "cells": [
+        "13-5/8\" Except 15,000 psi",
+        "10.5",
+        "",
+        "10.9",
+        "",
+        "32",
+        "",
+        "10.8:1",
+        "",
+        "4.5:1"
+      ]
+    }
+  ],
+  "bonnetRebuildKits": [
+    {
+      "page": 16,
+      "cells": [
+        "13-5/8",
+        "3,000, 5,000 and 10,000 psi Pipe **",
+        "644909-03"
+      ]
+    },
+    {
+      "page": 16,
+      "cells": [
+        "13-5/8",
+        "15,000 psi All",
+        "644831-12"
+      ]
+    }
+  ],
+  "liftingPlates": [
+    {
+      "page": 17,
+      "cells": [
+        "13-5/8",
+        "3,000, 5,000, 10,000 and 15,000 psi",
+        "644930-01",
+        "50"
+      ]
+    },
+    {
+      "page": 17,
+      "cells": [
+        "13-5/8",
+        "3,000, 5,000 10,000 and 15,000 psi",
+        "644930-05",
+        "100"
+      ]
+    }
+  ],
+  "largeBoreShearBonnet": [
+    {
+      "page": 18,
+      "cells": [
+        "",
+        "Description",
+        "11\"",
+        "11\"",
+        "11\"",
+        "11\"",
+        "13-5/8\"",
+        "13-5/8\""
+      ]
+    },
+    {
+      "page": 18,
+      "cells": [
+        "Item",
+        "(2 Required per Cavity)",
+        "3,000 psi",
+        "5,000 psi",
+        "10,000 psi",
+        "15,000 psi",
+        "3,000 psi",
+        "5,000 psi"
+      ]
+    },
+    {
+      "page": 18,
+      "cells": [
+        "No.",
+        "",
+        "Model II",
+        "Model II",
+        "Model II",
+        "Model 79",
+        "Model 11",
+        "Model 11"
+      ]
+    },
+    {
+      "page": 18,
+      "cells": [
+        "*",
+        "Bonnet Assembly (Right)",
+        "-",
+        "615194-01-00-70",
+        "614596-01-00-05",
+        "2245316-00-01",
+        "-",
+        "615191-01-70"
+      ]
+    },
+    {
+      "page": 18,
+      "cells": [
+        "*",
+        "Bonnet Assembly (Left)",
+        "-",
+        "615194-02-00-70",
+        "614596-02-00-05",
+        "2245316-00-02",
+        "-",
+        "615191-02-70"
+      ]
+    },
+    {
+      "page": 18,
+      "cells": [
+        "2A I",
+        "ntermediate Flange/Shear",
+        "144114-01-00-01",
+        "144114-01-00-01",
+        "144114-01-00-01",
+        "2245318-01",
+        "163220-01",
+        "163220-01"
+      ]
+    },
+    {
+      "page": 18,
+      "cells": [
+        "3A",
+        "Bonnet/Shear",
+        "615189-03",
+        "615189-02",
+        "615189-01",
+        "615640-01",
+        "615143-02",
+        "615143-01"
+      ]
+    },
+    {
+      "page": 18,
+      "cells": [
+        "5A",
+        "Operating Piston/Shear",
+        "2245160-02-01",
+        "2245160-02-01",
+        "2245160-02-01",
+        "163150-02",
+        "2245199-02-01",
+        "2245199-02-01"
+      ]
+    },
+    {
+      "page": 18,
+      "cells": [
+        "24A",
+        "O-Ring, Int Flg to Bonnet Lip",
+        "702645-45-51",
+        "702645-45-51",
+        "702645-45-51",
+        "702645-45-81",
+        "702645-45-81",
+        "702645-45-81"
+      ]
+    },
+    {
+      "page": 18,
+      "cells": [
+        "26A",
+        "Lip Seal, Operating Piston/Shear",
+        "710586",
+        "710586",
+        "710586",
+        "710542",
+        "710542",
+        "710542"
+      ]
+    },
+    {
+      "page": 18,
+      "cells": [
+        "42A",
+        "Wear Ring, Operating Piston/Shear",
+        "049223-15",
+        "049223-15",
+        "049223-15",
+        "049223-04",
+        "049223-04",
+        "049223-04"
+      ]
+    },
+    {
+      "page": 18,
+      "cells": [
+        "",
+        "Description",
+        "13-5/8\"",
+        "13-5/8\"",
+        "16-3/4\"",
+        "16-3/4\"",
+        "20-3/4\"",
+        "21-1/4\""
+      ]
+    },
+    {
+      "page": 18,
+      "cells": [
+        "Item",
+        "(2 Required per Cavity)",
+        "10,000 psi",
+        "15,000 psi",
+        "5,000 psi",
+        "10,000 psi",
+        "3,000 psi",
+        "2,000 psi"
+      ]
+    },
+    {
+      "page": 18,
+      "cells": [
+        "No.",
+        "",
+        "Model 11",
+        "Model B",
+        "Model B",
+        "Model II",
+        "Model II",
+        "Model II"
+      ]
+    },
+    {
+      "page": 18,
+      "cells": [
+        "*",
+        "Bonnet Assembly (Right)",
+        "614498-01-70-01",
+        "2113727-01-70",
+        "615530-01-00-01",
+        "-",
+        "-",
+        "-"
+      ]
+    },
+    {
+      "page": 18,
+      "cells": [
+        "*",
+        "Bonnet Assembly (Left)",
+        "614498-02-70-01",
+        "2113727-02-70",
+        "615530-02-00-01",
+        "-",
+        "-",
+        "-"
+      ]
+    },
+    {
+      "page": 18,
+      "cells": [
+        "2A",
+        "Intermediate Flange/Shear",
+        "236499-34-21-03",
+        "2113729-01",
+        "615528-01-00-01",
+        "615535-01",
+        "615523-03",
+        "615523-03"
+      ]
+    },
+    {
+      "page": 18,
+      "cells": [
+        "3A",
+        "Bonnet/Shear",
+        "614772-01",
+        "615448-01",
+        "615527-01",
+        "615534-01",
+        "615522-01",
+        "615522-02"
+      ]
+    },
+    {
+      "page": 18,
+      "cells": [
+        "5A",
+        "Operating Piston/Shear",
+        "2245074-02-01",
+        "236501-35-21-03",
+        "615529-02-00-01",
+        "615536-01",
+        "615524-03",
+        "615524-03"
+      ]
+    },
+    {
+      "page": 18,
+      "cells": [
+        "24A",
+        "O-Ring, Int Flg to Bonnet Lip",
+        "702645-45-81",
+        "702645-46-51",
+        "702645-46-51",
+        "702645-46-51",
+        "702645-45-81",
+        "702645-45-81"
+      ]
+    },
+    {
+      "page": 18,
+      "cells": [
+        "26A",
+        "Lip Seal, Operating Piston/Shear",
+        "710542",
+        "710588",
+        "710588",
+        "710588",
+        "710542",
+        "710542"
+      ]
+    },
+    {
+      "page": 18,
+      "cells": [
+        "42A",
+        "Wear Ring, Operating Piston/Shear",
+        "049223-04",
+        "049223-17",
+        "049223-17",
+        "049223-17",
+        "049223-14",
+        "049223-14"
+      ]
+    }
+  ],
+  "largeBoreShearBonnetKits": [
+    {
+      "page": 19,
+      "cells": [
+        "13-5/8",
+        "3,000",
+        "644860-05"
+      ]
+    },
+    {
+      "page": 19,
+      "cells": [
+        "13-5/8",
+        "5,000",
+        "644860-06"
+      ]
+    },
+    {
+      "page": 19,
+      "cells": [
+        "13-5/8",
+        "10,000",
+        "644860-07"
+      ]
+    },
+    {
+      "page": 19,
+      "cells": [
+        "13-5/8",
+        "15,000",
+        "644860-08"
+      ]
+    }
+  ],
+  "tandemBoosterComposite": [
+    {
+      "page": 21,
+      "cells": [
+        "Item Number",
+        "Description",
+        "11\" 15,000 psi",
+        ""
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "",
+        "",
+        "13-5/8\" 3,000, 5,000 & 10,000 psi",
+        ""
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "",
+        "",
+        "Qty",
+        "Part No."
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "**",
+        "Tandem Booster Assembly",
+        "1",
+        "2010886-01"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "1",
+        "Adapter Plate",
+        "2",
+        "2010885-01"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "2",
+        "Pipe Plug",
+        "2",
+        "2010881-01"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "3",
+        "Cylinder",
+        "2",
+        "2010884-01"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "4",
+        "Cylinder Head",
+        "2",
+        "2010882-01"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "5",
+        "Tail Rod",
+        "2",
+        "2010880-01"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "6",
+        "Piston",
+        "2",
+        "645172-03"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "7",
+        "Screw, Cap",
+        "16",
+        "702585-31-00-30"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "8",
+        "Screw, Cap",
+        "12",
+        "702585-34-01-64"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "9",
+        "O-Ring",
+        "2",
+        "702645-33-71"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "10",
+        "Seal, Lip",
+        "2",
+        "011741-34"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "11",
+        "O-Ring",
+        "2",
+        "702645-38-12"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "12",
+        "Seal Ring",
+        "2",
+        "710418"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "13",
+        "Wear Ring",
+        "2",
+        "645215-01"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "14",
+        "Wear Ring",
+        "2",
+        "049223-01"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "15",
+        "Seal Ring",
+        "2",
+        "704772"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "16",
+        "Filter, Quiet Muffler",
+        "2",
+        "710621"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "17",
+        "Stud, Double Ended",
+        "2",
+        "702533-09-10-22"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "18",
+        "Connector, Tubing",
+        "2",
+        "204887-10-06-57"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "19",
+        "Cross",
+        "1",
+        "675029-23"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "20",
+        "Nipple, Pipe Regular",
+        "1",
+        "685902-07-00-30"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "21",
+        "Hose Assembly",
+        "2",
+        "2724538"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "22",
+        "Connector, Tubing",
+        "2",
+        "-"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "23",
+        "Gland, Tubing",
+        "2",
+        "017454-08"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "24",
+        "Blind Plug",
+        "2",
+        "017454-09"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "25",
+        "Elbow",
+        "2",
+        "714407"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "26",
+        "Pipe Plug",
+        "2",
+        "002504-28"
+      ]
+    },
+    {
+      "page": 21,
+      "cells": [
+        "---",
+        "Repair Kits",
+        "--",
+        "2164148-02"
+      ]
+    }
+  ],
+  "standardAccessories": [
+    {
+      "page": 40,
+      "cells": [
+        "13-5/8\" 10,000 psi",
+        "713878",
+        "713114-13",
+        "008721-01",
+        "005298",
+        "006018-03",
+        "005526"
+      ]
+    }
+  ],
+  "pipeRams": [
+    {
+      "page": 43,
+      "cells": [
+        "Part Numbers for U & UM BOP Pipe Rams",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "",
+        "11\"",
+        "",
+        "",
+        "13-5/8\"",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "Pipe Size",
+        "15,000 psi WP (*)",
+        "",
+        "",
+        "3,000, 5,000 and 10,000 psi WP",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "(in.)",
+        "Top Seal 2010453-01",
+        "",
+        "",
+        "Top Seal 644223-01-00-01",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "",
+        "Assembly",
+        "Ram",
+        "Packer",
+        "Assembly",
+        "",
+        "Ram",
+        "Packer"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "Blind",
+        "2245650-01",
+        "2245649-01",
+        "644221-01",
+        "644225-01-00-01",
+        "B",
+        "044147-01-00-01",
+        "644224-01-00-01"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "1.050",
+        "-----",
+        "-----",
+        "-----",
+        "-----",
+        "",
+        "-----",
+        "-----"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "1.315",
+        "-----",
+        "-----",
+        "-----",
+        "644225-02",
+        "",
+        "-----",
+        "-----"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "1.660",
+        "644222-02",
+        "-----",
+        "-----",
+        "644225-03",
+        "",
+        "-----",
+        "-----"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "1.900",
+        "644222-03",
+        "-----",
+        "-----",
+        "644225-04",
+        "",
+        "-----",
+        "-----"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "2.062",
+        "644222-04",
+        "-----",
+        "-----",
+        "644225-05",
+        "",
+        "-----",
+        "644224-05-00-01"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "2.375",
+        "2010456-05",
+        "-----",
+        "2010454-05",
+        "644225-06-00-01",
+        "B",
+        "044148-01-00-01",
+        "644224-06-00-01"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "2.875",
+        "2010456-06",
+        "-----",
+        "2010454-06",
+        "644225-07-00-01",
+        "B",
+        "044148-02-00-01",
+        "644224-07-00-01"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "3.000",
+        "-----",
+        "-----",
+        "",
+        "644225-28-00-01",
+        "",
+        "044148-08-00-01",
+        "644224-31-00-01"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "3.500",
+        "2245650-09",
+        "2245649-09",
+        "2010454-07",
+        "644225-08-00-01",
+        "C",
+        "644738-01-00-01",
+        "644224-08-00-01"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "4.000",
+        "2245650-11",
+        "2245649-11",
+        "2010454-08",
+        "644225-10-00-01",
+        "B",
+        "044149-02-00-01",
+        "644224-10-00-01"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "4.500",
+        "2245650-12",
+        "2245649-12",
+        "2010454-09",
+        "644225-11-00-01",
+        "",
+        "644738-02-00-01",
+        "644224-11-00-01"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "4.750",
+        "-----",
+        "-----",
+        "-----",
+        "644225-13",
+        "",
+        "644225-17",
+        "644224-13-00-01"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "5.000",
+        "2245650-13",
+        "2245649-13",
+        "2010454-10",
+        "644225-14-00-01",
+        "C",
+        "644738-03-00-01",
+        "644224-14-00-01"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "5.500",
+        "2245650-14",
+        "2245649-14",
+        "2010454-11",
+        "644225-16-00-04",
+        "C",
+        "644738-05-00-02",
+        "644224-16-00-01"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "5.750",
+        "-----",
+        "-----",
+        "-----",
+        "644225-34-00-01",
+        "",
+        "644738-08-00-01",
+        "644224-30-00-01"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "5.875",
+        "-----",
+        "-----",
+        "-----",
+        "644225-30",
+        "",
+        "644738-06-00-01",
+        "644224-29-00-01"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "6.000",
+        "644222-12",
+        "-----",
+        "",
+        "044244-13",
+        "",
+        "",
+        "644224-17-00-01"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "6.250",
+        "2010456-14",
+        "-----",
+        "2010454-15",
+        "-----",
+        "",
+        "-----",
+        "-----"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "6.625",
+        "2010456-13",
+        "-----",
+        "2010454-13",
+        "644225-18-00-02",
+        "C",
+        "644738-04-00-02",
+        "644224-18-00-01"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "7.000",
+        "2245650-18",
+        "2245649-18",
+        "2010454-14",
+        "644225-19-00-01",
+        "E",
+        "044151-01-00-01",
+        "644224-19-00-01"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "7.625",
+        "2245650-19",
+        "2245649-19",
+        "2010454-17",
+        "644225-20-00-01",
+        "B",
+        "044151-02-00-01",
+        "644224-20-00-01"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "7.750",
+        "-----",
+        "-----",
+        "-----",
+        "644225-21",
+        "",
+        "-----",
+        "644224-21-00-01"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "8.125",
+        "2010456-12",
+        "-----",
+        "2010454-16",
+        "-----",
+        "",
+        "-----",
+        "-----"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "8.625",
+        "-----",
+        "-----",
+        "-----",
+        "644225-22",
+        "",
+        "-----",
+        "644224-22-00-01"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "9.000",
+        "-----",
+        "-----",
+        "-----",
+        "044244-24-00-01",
+        "",
+        "044151-04-00-01",
+        "644224-23-00-01"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "9.625",
+        "-----",
+        "-----",
+        "-----",
+        "644225-24-00-01",
+        "C",
+        "044151-05-00-01",
+        "644224-24-00-01"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "9.875",
+        "-----",
+        "-----",
+        "-----",
+        "644225-27-00-01",
+        "",
+        "044151-09-00-01",
+        "644224-27-00-01"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "10.750",
+        "-----",
+        "-----",
+        "-----",
+        "644225-25-00-01",
+        "",
+        "044152-01-00-02",
+        "644224-25-00-01"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "11.750",
+        "-----",
+        "-----",
+        "-----",
+        "644225-26-00-01",
+        "B",
+        "614208-01-00-01",
+        "644224-26-00-01"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "3.500 Aluminum",
+        "-----",
+        "-----",
+        "-----",
+        "644225-09",
+        "",
+        "-----",
+        "-----"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "4.500 Aluminum",
+        "-----",
+        "-----",
+        "-----",
+        "644225-12",
+        "",
+        "-----",
+        "-----"
+      ]
+    },
+    {
+      "page": 43,
+      "cells": [
+        "5.000 Aluminum",
+        "-----",
+        "-----",
+        "-----",
+        "644225-15",
+        "",
+        "-----",
+        "-----"
+      ]
+    }
+  ],
+  "shearingBlindRams": [
+    {
+      "page": 48,
+      "cells": [
+        "Description and Item Number",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "page": 48,
+      "cells": [
+        "BOP Bore Size and Working Pressure",
+        "1 Upper Ram Subassy",
+        "2 Body*",
+        "3 Blade Packer*",
+        "4 Side Packer*",
+        "5 Side Packer*"
+      ]
+    },
+    {
+      "page": 48,
+      "cells": [
+        "13-5/8\" 5,000, 10,000 psi",
+        "046748-01-00-01",
+        "046749-01-00-01",
+        "644435-01-00-01",
+        "046751-01-00-02",
+        "046752-01-00-02"
+      ]
+    },
+    {
+      "page": 48,
+      "cells": [
+        "Description and Item Number",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "page": 48,
+      "cells": [
+        "BOP Bore Size and Working Pressure",
+        "6 Lower Ram Subassy",
+        "7 Body",
+        "8 Side Packer",
+        "9 Side Packer",
+        "10 Top Seal (2 Required)"
+      ]
+    },
+    {
+      "page": 48,
+      "cells": [
+        "13-5/8\" 5,000 & 10,000 psi",
+        "046748-02-00-01",
+        "046750-01-00-01",
+        "046751-01-00-02",
+        "046752-01-00-02",
+        "644223-01-00-01"
+      ]
+    }
+  ],
+  "h2sShearingBlindRams": [
+    {
+      "page": 49,
+      "cells": [
+        "BOP Bore Size",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ]
+    },
+    {
+      "page": 49,
+      "cells": [
+        "Pressure",
+        "Subassy",
+        "",
+        "Packer",
+        "",
+        "",
+        "Seal",
+        "Insert",
+        "Screw"
+      ]
+    },
+    {
+      "page": 49,
+      "cells": [
+        "13-5/8\" 5,000 & 6 10,000",
+        "44781-01-00-01",
+        "644780-01-00-01",
+        "644435-01-00-01",
+        "046751-01-00-02",
+        "046752-01-00-02",
+        "644223-01-00-01",
+        "644581-01-00-01",
+        "644582-01"
+      ]
+    },
+    {
+      "page": 49,
+      "cells": [
+        "BOP Bore Size",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15"
+      ]
+    },
+    {
+      "page": 49,
+      "cells": [
+        "Pressure (psi)",
+        "Subassy",
+        "",
+        "",
+        "",
+        "Seal",
+        "Insert",
+        "(QTY 2 req’d)"
+      ]
+    },
+    {
+      "page": 49,
+      "cells": [
+        "13-5/8\" 5,000 & 10,00",
+        "0 644781-02-00-01",
+        "644780-02-00-01",
+        "046751-01-00-02",
+        "046752-01-00-02",
+        "644223-01-00-01",
+        "644581-02-00-01",
+        "200231"
+      ]
+    }
+  ],
+  "severeServiceH2sShearRams": [
+    {
+      "page": 50,
+      "cells": [
+        "13-5/8\" 5,000 and 10,000",
+        "644781-03-00-01",
+        "",
+        "644780-01-00-01",
+        "",
+        "644834-01-00-01",
+        "",
+        "645427-01-00-01",
+        "",
+        "645428-01-00-01",
+        "",
+        "644707-01-00-01",
+        "",
+        "644581-01-00-01",
+        "",
+        "644582-01"
+      ]
+    },
+    {
+      "page": 50,
+      "cells": [
+        "13-5/8\" 5,000 and 10,000",
+        "",
+        "644781-04-00-01",
+        "",
+        "644780-02-00-01",
+        "",
+        "645427-01-00-01",
+        "",
+        "645428-01-00-01",
+        "",
+        "644707-01-00-01",
+        "",
+        "644581-02-00-01",
+        "",
+        "200231",
+        ""
+      ]
+    }
+  ],
+  "isrShearRams": [
+    {
+      "page": 52,
+      "cells": [
+        "13-5/8\" 3,000, 5,000 and 10,000 *",
+        "2164775-03",
+        "2164773-01",
+        "2010985-01",
+        "2010985-02",
+        "645033-01-00-01",
+        "2010986-01",
+        "2010986-02"
+      ]
+    }
+  ],
+  "variableBoreRams": [
+    {
+      "page": 54,
+      "cells": [
+        "BOP Size and",
+        "Pipe Size",
+        "Ram",
+        "Ram",
+        "",
+        "Top"
+      ]
+    },
+    {
+      "page": 54,
+      "cells": [
+        "13-5/8\" 3,000, 5,000 and 10,000 VBR-II",
+        "7\" to 4-1/2\"",
+        "046675-01-00-02",
+        "046671-01-00-02",
+        "644924-03",
+        "644223-02-00-01"
+      ]
+    },
+    {
+      "page": 54,
+      "cells": [
+        "13-5/8\" 3,000, 5,000 and 10,000 VBR-II",
+        "5-7/8\" to 3-1/2\"",
+        "2164664-01",
+        "2164404-01",
+        "2164599-01",
+        "644223-02-00-01"
+      ]
+    },
+    {
+      "page": 54,
+      "cells": [
+        "13-5/8\" 3,000, 5,000 and 10,000 VBR-II",
+        "5-1/2\" to 3-1/2\"",
+        "2163945-01",
+        "2011438-01",
+        "645089-02-00-01",
+        "644223-02-00-01"
+      ]
+    },
+    {
+      "page": 54,
+      "cells": [
+        "13-5/8\" 3,000, 5,000 and 10,000 VBR-II",
+        "5\" to 2-7/8\"",
+        "645166-02",
+        "644744-01-00-04",
+        "645089-02-00-01",
+        "644223-02-00-01"
+      ]
+    },
+    {
+      "page": 54,
+      "cells": [
+        "BOP Size and",
+        "Pipe Size",
+        "Ram",
+        "Ram",
+        "",
+        "Top"
+      ]
+    },
+    {
+      "page": 54,
+      "cells": [
+        "13-5/8\" 3,000 5,000 and 10,000",
+        "5-7/8\" to 3-1/2\"",
+        "2164806-01",
+        "2164404-01",
+        "2164765-01",
+        "2164807-01"
+      ]
+    }
+  ],
+  "flexpackers": [
+    {
+      "page": 55,
+      "cells": [
+        "13-5/8\"",
+        "2-3/8\" to 3-1/2\"",
+        "*2011716-01",
+        "644223-01-00-01"
+      ]
+    },
+    {
+      "page": 55,
+      "cells": [
+        "13-5/8\" 3,000, 5,000 and 10,000",
+        "2-3/8\" x 3-1/2\"",
+        "2011716-01"
+      ]
+    },
+    {
+      "page": 55,
+      "cells": [
+        "13-5/8\" 3,000, 5,000 and 10,000",
+        "3-1/2\" x 5\"",
+        "2011673-01"
+      ]
+    },
+    {
+      "page": 55,
+      "cells": [
+        "13-5/8\" 3,000, 5,000 and 10,000",
+        "5\" x 6-5/8\"",
+        "2011688-01"
+      ]
+    }
+  ],
+  "wearPadsAndCamlastSeals": [
+    {
+      "page": 59,
+      "cells": [
+        "Bore Size and Working Pressure",
+        "Left Part Number",
+        "Qty. Per Assembly",
+        "Right Part Number",
+        "Qty. Per Assembly",
+        "Screw Part Number",
+        "Qty Per Assembly"
+      ]
+    },
+    {
+      "page": 59,
+      "cells": [
+        "13-5/8\" 3,000-10,000",
+        "2011277-01",
+        "1",
+        "20112277-02",
+        "1",
+        "644349-01",
+        "4"
+      ]
+    },
+    {
+      "page": 59,
+      "cells": [
+        "13-5/8\" 15,000",
+        "644348-04",
+        "2",
+        "Both pads included",
+        "",
+        "644349-01",
+        "4"
+      ]
+    },
+    {
+      "page": 59,
+      "cells": [
+        "Size",
+        "(psi)",
+        "Bonnet Seal",
+        "Conn. Rod Seal",
+        "Bonnet Seal",
+        "Conn. Rod Seal"
+      ]
+    },
+    {
+      "page": 59,
+      "cells": [
+        "13-5/8\"",
+        "3,000, 5,000 and 10,000",
+        "644197-03-00-01",
+        "212741-36-00-01",
+        "644573-03-00-01",
+        "645077-36-00-01"
+      ]
+    },
+    {
+      "page": 59,
+      "cells": [
+        "13-5/8\"",
+        "15,000",
+        "644196-01-00-01",
+        "212741-36-00-01",
+        "644898-02-00-01",
+        "645077-36-00-01"
+      ]
+    }
+  ],
+  "bonnetSealCarriers": [
+    {
+      "page": 60,
+      "cells": [
+        "Type",
+        "Size",
+        "Qty.",
+        "Part Number",
+        "Qty.",
+        "Part Number",
+        "Qty.",
+        "Part Number"
+      ]
+    },
+    {
+      "page": 60,
+      "cells": [
+        "U, UM",
+        "13-5/8\"",
+        "2",
+        "645507-01-00-02",
+        "2",
+        "702645-27-91",
+        "4",
+        "645509-01-00-01"
+      ]
+    },
+    {
+      "page": 60,
+      "cells": [
+        "U, UM",
+        "13-5/8\" 15,000 psi",
+        "2",
+        "2010145-01",
+        "2",
+        "702645-27-71",
+        "4",
+        "2010146-01"
+      ]
+    }
+  ],
+  "knownPrintAnomalies": [
+    "p.12 item 12 Bolt, Bonnet: 3,000 psi column prints 201081-06-01, 10,000 psi column prints 2010181-06-01.",
+    "p.12 item 13 Stud: 10,000 psi column prints 219061-14-06-01; the other three columns print 219065-...",
+    "p.12 item 39 Packing, Plastic: 10,000 psi column prints 07650-25; other columns print 007650-25 (probable missing leading zero).",
+    "p.12 header prints '3,000 pasi' (typo in source).",
+    "p.49 first 13-5/8 row prints '44781-01-00-01' split across cells; p.50 shows 644781-03-00-01 for severe service.",
+    "p.59 13-5/8 right wear pad prints '20112277-02' (left is 2011277-01)."
+  ]
+}
