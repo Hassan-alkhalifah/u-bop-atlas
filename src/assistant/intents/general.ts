@@ -41,7 +41,7 @@ Questions (answered only from the sourced data)
 - sources  /  what is not documented
 
 View and setup
-- x-ray on / off
+- x-ray on / x-ray off
 - evidence mode
 - paint red / paint grey
 - single BOP / double BOP

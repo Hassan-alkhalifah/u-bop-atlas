@@ -25,7 +25,7 @@ function MessageBody({ m, onRun }: { m: ChatMessage; onRun: (text: string) => vo
             {b.lines.map((l, j) => (
               <li key={j}>
                 {m.runnableList
-                  ? l.split('  /  ').map((cmd) => (
+                  ? l.split(/\s+\/\s+/).map((cmd) => (
                       <button key={cmd} type="button" className="cmd-pill" onClick={() => onRun(cmd.replace(/\s*\(.*\)$/, ''))}>
                         {cmd}
                       </button>
