@@ -18,7 +18,7 @@ export function SearchBar() {
     if (c?.geometry.meshes.length) dispatch({ type: 'focusCamera', id })
     setOpen(false)
     setQ('')
-    if (window.matchMedia('(max-width: 900px)').matches) useViewer.setState({ mobileSheet: 'panel', panelTab: 'details' })
+    if (window.matchMedia('(max-width: 900px)').matches) useViewer.setState({ mobileSheet: 'closed' })
   }
 
   return (

@@ -32,6 +32,8 @@ function ComponentRow({ c, depth }: { c: ComponentInstance; depth: number }) {
         onClick={() => {
           dispatch({ type: 'selectComponent', id: c.id })
           if (hasGeometry) dispatch({ type: 'focusCamera', id: c.id })
+          // On phones, close the sheet so the part (and its card) is visible.
+          if (window.matchMedia('(max-width: 900px)').matches) useViewer.setState({ mobileSheet: 'closed' })
         }}
         onMouseEnter={() => useViewer.setState({ hoveredId: c.id })}
         onMouseLeave={() => useViewer.setState({ hoveredId: null })}

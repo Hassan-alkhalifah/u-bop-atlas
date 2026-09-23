@@ -7,17 +7,19 @@ import { runLocalAssistant } from './local-engine'
 export interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
-  mode?: 'claude' | 'offline'
-  removedValues?: string[]
+  /** Follow-up commands shown as tap-to-run chips. */
+  suggestions?: string[]
+  /** List lines ("- ...") are runnable examples (the help reply). */
+  runnableList?: boolean
 }
 
+/** null = not tried yet. A static host (GitHub Pages) has no /api, so this becomes false after one try. */
 let serverAvailable: boolean | null = null
 
 interface ServerBody {
   ok: boolean
   text?: string
   commands?: Command[]
-  removedValues?: string[]
   error?: string
   message?: string
 }
@@ -30,7 +32,7 @@ async function askServer(message: string, history: ChatMessage[], config: BopCon
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message, history: history.slice(-12).map(({ role, content }) => ({ role, content })), config }),
     })
-    if (res.status === 503 || res.status === 404) {
+    if (!res.ok && res.status !== 400 && res.status !== 429) {
       serverAvailable = false
       return null
     }
@@ -43,27 +45,24 @@ async function askServer(message: string, history: ChatMessage[], config: BopCon
   }
 }
 
-export function assistantMode(): 'claude' | 'offline' | 'unknown' {
-  return serverAvailable === null ? 'unknown' : serverAvailable ? 'claude' : 'offline'
-}
-
 /** Run commands from the assistant without pulling the user away from the chat. */
 function runCommands(commands: Command[]): void {
   for (const cmd of commands) dispatch(cmd)
   useViewer.setState({ panelTab: 'assistant' })
 }
 
+const HELP = /^(help|\?|commands?|menu)\b/i
+
 export async function ask(message: string, history: ChatMessage[]): Promise<ChatMessage> {
-  const ds = useViewer.getState().dataset
-  const server = await askServer(message, history, ds.config)
-  if (server && server.ok) {
-    runCommands(server.commands ?? [])
-    return { role: 'assistant', content: server.text ?? '', mode: 'claude', removedValues: server.removedValues }
+  const state = useViewer.getState()
+  const local = () => {
+    const reply = runLocalAssistant(state.dataset, message, useViewer.getState().selectedId)
+    runCommands(reply.commands)
+    return { role: 'assistant' as const, content: reply.text, suggestions: reply.suggestions, runnableList: reply.text.startsWith('Here is what I can do') }
   }
-  if (server && !server.ok && server.error !== 'assistant_offline') {
-    return { role: 'assistant', content: server.message ?? 'The assistant could not answer.', mode: 'claude' }
-  }
-  const reply = runLocalAssistant(ds, message)
-  runCommands(reply.commands)
-  return { role: 'assistant', content: reply.text, mode: 'offline' }
+  if (HELP.test(message.trim())) return local()
+  const server = await askServer(message, history, state.dataset.config)
+  if (!server || !server.ok) return local()
+  runCommands(server.commands ?? [])
+  return { role: 'assistant', content: server.text ?? '' }
 }

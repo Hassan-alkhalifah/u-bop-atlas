@@ -44,4 +44,15 @@ describe('organized explode', () => {
     const chain = ['upper-R/ram-body', 'upper-R/i03', 'upper-R/i02', 'upper-R/i06', 'upper-R/i07', 'upper-R/i08'].map(x)
     expect([...chain].sort((a, b) => a - b)).toEqual(chain)
   })
+
+  it('moves parts that sit on top upward for both cavities (top seal never enters its ram)', () => {
+    const s = withExplode(1)
+    for (const id of ['upper-L/ram-topSeal', 'lower-R/ram-topSeal', 'lower-L/ram-bladePacker', 'lower-L/i38', 'lower-R/i15'].filter((i) => s.dataset.byId.has(i))) {
+      const c = s.dataset.byId.get(id)!
+      const ram = s.dataset.byId.get(id.split('/')[0] + '/ram-body')!
+      const rel = componentOffset(c, s)[1] - componentOffset(ram, s)[1]
+      expect(c.geometry.explode[1], id).toBeGreaterThan(0)
+      if (id.includes('ram-')) expect(rel, id).toBeGreaterThan(0)
+    }
+  })
 })

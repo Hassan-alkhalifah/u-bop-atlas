@@ -97,3 +97,78 @@ describe('rate limit', () => {
     expect(checkRateLimit('test-client', 1000 + 61_000)).toBe(true)
   })
 })
+
+describe('offline assistant v2', () => {
+  const run = (text: string, selected: string | null = null) => runLocalAssistant(ds, text, selected)
+  const cmdTypes = (text: string, selected: string | null = null) => types(run(text, selected).commands)
+
+  it('lists every command family for "help"', () => {
+    const r = run('help')
+    for (const word of ['Find and show', 'Explode', 'Animations', 'Questions', 'View and setup']) expect(r.text).toContain(word)
+    expect(r.suggestions?.length).toBeGreaterThan(0)
+  })
+
+  it('hides a specific part, not the whole fastener system', () => {
+    const r = run('hide the bonnet bolts')
+    const hide = r.commands.find((c) => c.type === 'hideComponents')
+    expect(hide && hide.type === 'hideComponents' && hide.ids.every((id) => id.endsWith('/i12'))).toBe(true)
+  })
+
+  it('isolates a whole system by name', () => {
+    const r = run('show only the rams')
+    const iso = r.commands.find((c) => c.type === 'isolateComponents')
+    expect(iso && iso.type === 'isolateComponents' && iso.ids.every((id) => ds.byId.get(id)!.systemIds.includes('rams'))).toBe(true)
+  })
+
+  it('follows up on the selected part with "it"', () => {
+    expect(run('hide it', 'upper-L/i05').commands).toEqual([{ type: 'hideComponents', ids: ['upper-L/i05'] }])
+    expect(run('its part number', 'upper-L/i05').text).toContain('2245074-01-01')
+    expect(cmdTypes('its connections', 'upper-L/i05')).toContain('showConnections')
+    expect(run('hide it').text).toContain('Select a part first')
+  })
+
+  it('explodes to a percentage', () => {
+    expect(run('explode 50%').commands[0]).toEqual({ type: 'setExplode', amount: 0.5 })
+  })
+
+  it('changes the configuration from words', () => {
+    const blind = run('upper rams blind').commands.find((c) => c.type === 'setConfig')
+    expect(blind && blind.type === 'setConfig' && blind.config.rams.upper).toEqual({ type: 'blind' })
+    const pipe = run('lower rams 3 1/2 inch pipe').commands.find((c) => c.type === 'setConfig')
+    expect(pipe && pipe.type === 'setConfig' && pipe.config.rams.lower).toEqual({ type: 'pipe', pipeSize: '3.500' })
+    expect(run('upper rams 8 inch pipe').text).toContain('not in the catalog')
+    expect(cmdTypes('single BOP')).toContain('setConfig')
+  })
+
+  it('handles view settings', () => {
+    expect(run('paint red').commands).toEqual([{ type: 'setPaint', paint: 'red' }])
+    expect(run('x-ray off').commands).toEqual([{ type: 'setXray', on: false }])
+    expect(run('evidence mode').commands).toEqual([{ type: 'setProvenanceMode', on: true }])
+  })
+
+  it('answers list, count, spares, kit, sources and gap questions from the data', () => {
+    expect(run('list parts in the upper right bonnet').text).toContain('Piston, Operating')
+    expect(run('list the locking system').text).toContain('Locking Screw')
+    expect(run('how many bonnet bolts').text).toContain('16 per double BOP')
+    expect(run('recommended spare parts').text).toContain('Seal, Bonnet')
+    expect(run('rebuild kit').text).toContain('644909-03')
+    expect(run('sources').text).toContain('Cameron International Corporation')
+    expect(run('what is not documented').text).toContain('Not available in verified public documentation')
+  })
+
+  it('never invents a procedure', () => {
+    expect(run('how do i replace the ram packer').text).toContain(NOT_AVAILABLE)
+  })
+
+  it('plays animations from plain commands', () => {
+    expect(cmdTypes('close the rams')).toContain('playAnimation')
+    expect(run('open the bonnets').commands).toContainEqual({ type: 'playAnimation', id: 'bonnet-open' })
+    expect(run('stop').commands).toEqual([{ type: 'stopAnimation' }])
+  })
+
+  it('suggests near matches for typos', () => {
+    const r = run('show the pistn')
+    expect(r.text).toContain('Did you mean')
+    expect(r.suggestions?.some((s) => /piston/i.test(s))).toBe(true)
+  })
+})

@@ -1,5 +1,5 @@
 import { bonnetItemGeometry, ITEMS_WITHOUT_GEOMETRY } from '../geometry/bonnet-geometry'
-import { BONNET_LAYOUT, RAM_LAYOUT, type ExplodeOffset } from '../geometry/explode-layout'
+import { BONNET_LAYOUT, RAM_LAYOUT, WORLD_UP_ITEMS, WORLD_UP_RAM_PARTS, type ExplodeOffset } from '../geometry/explode-layout'
 import type { BonnetFrame } from '../geometry/frame'
 import { ramPartGeometry, type RamPart } from '../geometry/ram-geometry'
 import { allCatalogItems, catalogItem, drawingClaim, OPERATING_DATA, partNumberClaim, PIPE_RAM_TOP_SEAL, pipeRamRow, quantityClaim, SBR, spareClaim } from './catalog'
@@ -17,8 +17,8 @@ export function locationLabel(cavity: CavityId, side: Side, stack: BopConfig['st
 const DRAWN_TIER_NOTE = 'Position and count follow exploded view SD17500 (catalog p.9). Shape and size are educational approximations.'
 
 /** Converts a local [axial, up, front] layout offset to world axes; "up" points away from the other cavity. */
-function toWorldExplode(local: ExplodeOffset, f: BonnetFrame, cavity: CavityId, stack: BopConfig['stack']): [number, number, number] {
-  const up = stack === 'single' || cavity === 'upper' ? 1 : -1
+function toWorldExplode(local: ExplodeOffset, f: BonnetFrame, cavity: CavityId, stack: BopConfig['stack'], worldUp = false): [number, number, number] {
+  const up = worldUp || stack === 'single' || cavity === 'upper' ? 1 : -1
   return [f.sign * local[0], up * local[1], local[2]]
 }
 
@@ -93,7 +93,7 @@ export function bonnetInstances(cavity: CavityId, side: Side, f: BonnetFrame, co
       kits: kitClaims(it.item),
       notes: [...(cur.notes ?? []), ...(noGeom ? [noGeom] : [])],
       geometry: geom
-        ? { tier: 'T3', tierNote: DRAWN_TIER_NOTE, meshes: geom.meshes, kinematic: geom.kinematic, explode: toWorldExplode(BONNET_LAYOUT[it.item] ?? geom.explode, f, cavity, config.stack), spin: geom.spin }
+        ? { tier: 'T3', tierNote: DRAWN_TIER_NOTE, meshes: geom.meshes, kinematic: geom.kinematic, explode: toWorldExplode(BONNET_LAYOUT[it.item] ?? geom.explode, f, cavity, config.stack, WORLD_UP_ITEMS.has(it.item)), spin: geom.spin }
         : { tier: 'T3', tierNote: noGeom ?? 'No geometry.', meshes: [], kinematic: 'fixed', explode: [0, 0, 0] },
     })
   }
@@ -184,7 +184,7 @@ export function ramInstances(cavity: CavityId, side: Side, f: BonnetFrame, confi
         tierNote: kind.type === 'pipe' ? 'Pipe cutout radius is half the documented pipe size; all other sizes are educational approximations.' : 'Educational approximation.',
         meshes: geom.meshes,
         kinematic: geom.kinematic,
-        explode: toWorldExplode(RAM_LAYOUT[def.part] ?? geom.explode, f, cavity, config.stack),
+        explode: toWorldExplode(RAM_LAYOUT[def.part] ?? geom.explode, f, cavity, config.stack, WORLD_UP_RAM_PARTS.has(def.part)),
       },
     }
     return [inst]

@@ -5,12 +5,16 @@ import { buildBop, type BopDataset } from '../data/build-bop'
 import { SYSTEM_IDS } from '../data/systems'
 import type { BopConfig, CavityId, SystemId } from '../data/types'
 import { startAnimation, stopAnimation } from './animation-player'
+import type { PaintId } from '../viewer/paints'
 import { initialState, useViewer } from './store'
 
 export type Command =
   | { type: 'selectComponent'; id: string | null }
   | { type: 'isolateComponents'; ids: string[] }
   | { type: 'hideComponents'; ids: string[] }
+  | { type: 'unhideComponents'; ids: string[] }
+  | { type: 'setPaint'; paint: PaintId }
+  | { type: 'setQuality'; quality: 'high' | 'standard' }
   | { type: 'showAll' }
   | { type: 'explodeAssembly'; assemblyId: string; amount: number }
   | { type: 'setExplode'; amount: number }
@@ -91,6 +95,18 @@ export function dispatch(cmd: Command): CommandResult {
       set({ hidden: new Set([...s.hidden, ...valid]) })
       return { ok: valid.length > 0, message: `Hid ${valid.length} component(s).${unknownNote(unknown)}` }
     }
+    case 'unhideComponents': {
+      const next = new Set(s.hidden)
+      cmd.ids.forEach((id) => next.delete(id))
+      set({ hidden: next })
+      return { ok: true, message: `Showing ${cmd.ids.length} component(s) again.` }
+    }
+    case 'setPaint':
+      set({ paint: cmd.paint })
+      return { ok: true, message: `Paint: ${cmd.paint}.` }
+    case 'setQuality':
+      set({ quality: cmd.quality })
+      return { ok: true, message: `Rendering: ${cmd.quality}.` }
     case 'showAll':
       set({ hidden: new Set(), isolated: null, activeSystems: new Set(), highlighted: new Set(), showConnectionsFor: null })
       return { ok: true, message: 'All components visible.' }

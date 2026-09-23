@@ -4,7 +4,9 @@ import { ComponentTree } from './panels/ComponentTree'
 import { ConfigPanel } from './panels/ConfigPanel'
 import { ControlDock, EvidenceBar } from './panels/ControlDock'
 import { DetailPanel } from './panels/DetailPanel'
+import { SelectionCard, SheetHead } from './panels/MobileParts'
 import { SearchBar } from './panels/SearchBar'
+import { Icon } from './panels/ui'
 import { useViewer, type PanelTab } from './state/store'
 
 const Scene = lazy(() => import('./viewer/Scene').then((m) => ({ default: m.Scene })))
@@ -14,6 +16,7 @@ function SideTabs() {
   const set = (t: PanelTab) => useViewer.setState({ panelTab: t })
   return (
     <>
+      <SheetHead title={tab === 'details' ? 'Details' : 'Assistant'} />
       <div className="tabs" role="tablist">
         {(['details', 'assistant'] as const).map((t) => (
           <button key={t} type="button" role="tab" className="tab" aria-selected={tab === t} onClick={() => set(t)}>
@@ -43,9 +46,9 @@ function MobileNav() {
   }
   return (
     <nav className="mobile-nav" aria-label="Panels">
-      <button type="button" aria-pressed={sheet === 'tree'} onClick={() => open('tree')}>Parts</button>
-      <button type="button" aria-pressed={sheet === 'panel' && tab === 'details'} onClick={() => open('details')}>Details</button>
-      <button type="button" aria-pressed={sheet === 'panel' && tab === 'assistant'} onClick={() => open('assistant')}>Assistant</button>
+      <button type="button" aria-pressed={sheet === 'tree'} onClick={() => open('tree')}><Icon name="isolate" size={18} />Parts</button>
+      <button type="button" aria-pressed={sheet === 'panel' && tab === 'details'} onClick={() => open('details')}><Icon name="focus" size={18} />Details</button>
+      <button type="button" aria-pressed={sheet === 'panel' && tab === 'assistant'} onClick={() => open('assistant')}><Icon name="send" size={18} />Assistant</button>
     </nav>
   )
 }
@@ -62,6 +65,7 @@ export function App() {
         <SearchBar />
       </header>
       <aside className="app-tree" aria-label="Parts">
+        <SheetHead title="Parts and setup" />
         <ConfigPanel />
         <ComponentTree />
       </aside>
@@ -70,6 +74,7 @@ export function App() {
           <Scene />
         </Suspense>
         <EvidenceBar />
+        <SelectionCard />
         <ControlDock />
       </main>
       <aside className="app-side" aria-label="Details and assistant">

@@ -9,7 +9,7 @@ An interactive, educational 3D atlas of the Cameron U ram-type BOP, 13-5/8 in, 1
 ```bash
 npm install
 npm run dev          # http://localhost:5173
-npm test             # 41 unit tests: data integrity, search, assistant, grounding guard, API loop
+npm test             # 53 unit tests: data integrity, search, assistant, grounding guard, API loop
 npm run build        # validate data -> typecheck -> bundle API -> production build
 ```
 
@@ -26,7 +26,8 @@ The assistant works without any key: it falls back to a rule-based offline assis
 - A connection graph. Solid lines are interfaces named or shown in the catalog; dashed lines are inferred and labelled as such.
 - Animations: close and lock, unlock and open, piston to rod to ram, and opening and closing the bonnets for a ram change. The order of events follows catalog p.6; strokes are approximations.
 - Configuration: double or single BOP, and the ram type per cavity (every 13-5/8" pipe ram size with a complete catalog row, blind ram, or shearing blind ram).
-- An assistant with viewer tools (`select_component`, `isolate_components`, `hide_components`, `explode_assembly`, `focus_camera`, `show_system`, `show_connections`, `play_animation`, `set_xray`). Claude's answers pass a grounding filter: any part number or measured value that the knowledge tools did not return is removed from the answer.
+- A built-in assistant that works with no API key. Type `help` for every command, with tap-to-run examples. It finds and explains parts, hides and isolates parts or whole systems, explodes (with percentages or a single bonnet), plays animations, changes paint, quality and the ram configuration, lists assemblies and systems, counts parts, and lists recommended spares, the rebuild kit, the sources and what is not documented. It understands follow-ups about the selected part ("hide it", "its part number"), suggests near matches for typos, and offers follow-up chips. Every fact comes from the sourced data.
+- Optional Claude assistant (Vercel deploy only) with viewer tools (`select_component`, `isolate_components`, `hide_components`, `explode_assembly`, `focus_camera`, `show_system`, `show_connections`, `play_animation`, `set_xray`). Claude's answers pass a grounding filter: any part number or measured value that the knowledge tools did not return is removed from the answer.
 - Part shapes and arrangement follow the catalog's exploded view and 3D view (p.9) and section (p.6): a vertical body column with a housing for each ram set; a stepped bonnet with its bolt heads; an octagonal intermediate flange pierced by the two ram-change cylinders; a round-flanged locking-screw housing on short studs; a square-drive locking screw. Sizes remain approximations (tier T3).
 - Studio lighting built in code (no HDR download), soft contact shadows, and ambient occlusion in "High quality" rendering. Phones default to "Standard". Paint colour (neutral grey or the red of the catalog render) and surface finishes are illustrative only.
 - Desktop and phone layouts.

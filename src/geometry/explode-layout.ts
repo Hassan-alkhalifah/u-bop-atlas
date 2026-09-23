@@ -83,6 +83,14 @@ export const BONNET_LAYOUT: Record<number, ExplodeOffset> = {
   38: [CHAIN.bonnet, 6, 0],
 }
 
+/**
+ * Parts that sit ON TOP of their parent (top seal, blade packer, fittings, bleeder, lifting eye) always move
+ * physically upward. Moving them "away from the other cavity" would push the lower-cavity ones down through
+ * their own parent part.
+ */
+export const WORLD_UP_ITEMS = new Set([15, 16, 17, 36, 37, 38])
+export const WORLD_UP_RAM_PARTS = new Set(['topSeal', 'bladePacker'])
+
 /** Stage-2 offset per ram part. */
 export const RAM_LAYOUT: Record<string, ExplodeOffset> = {
   body: [CHAIN.ram, 0, 0],

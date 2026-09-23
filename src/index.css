@@ -461,11 +461,89 @@ input[type='range'] {
   display: none;
 }
 
+.chat {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.msg-p {
+  margin: 0 0 6px;
+}
+
+.msg-p:last-child {
+  margin-bottom: 0;
+}
+
+.msg-ul {
+  margin: 2px 0 8px;
+  padding-left: 18px;
+}
+
+.msg-ul li {
+  margin: 2px 0;
+}
+
+.cmd-pill {
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  border-radius: 999px;
+  padding: 3px 10px;
+  margin: 2px 6px 2px 0;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.cmd-pill:hover {
+  border-color: var(--ink);
+}
+
+.chat-form {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--rule);
+}
+
+.chat-input {
+  flex: 1;
+  height: 42px;
+  font-size: 16px;
+}
+
+.chat-send {
+  height: 42px;
+  width: 46px;
+  justify-content: center;
+}
+
+.dock-extra {
+  display: contents;
+}
+
+.sheet-head,
+.dock-more,
+.evidence-toggle,
+.selection-card {
+  display: none;
+}
+
+.app-view canvas {
+  touch-action: none;
+}
+
 /* Phone and small tablet */
 @media (max-width: 900px) {
   .app {
     grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(0, 1fr) 56px;
+    grid-template-rows: auto minmax(0, 1fr) calc(56px + env(safe-area-inset-bottom));
     grid-template-areas:
       'head'
       'view'
@@ -475,7 +553,11 @@ input[type='range'] {
   .app-head {
     flex-wrap: wrap;
     gap: 8px;
-    padding: 8px 16px;
+    padding: 8px 12px;
+  }
+
+  .app-head h1 {
+    font-size: 17px !important;
   }
 
   .app-tree,
@@ -483,15 +565,15 @@ input[type='range'] {
     position: fixed;
     left: 0;
     right: 0;
-    bottom: 56px;
-    height: 64dvh;
+    bottom: calc(56px + env(safe-area-inset-bottom));
+    height: 58dvh;
     z-index: 30;
     border: 0;
     border-top: 1px solid var(--rule);
-    border-radius: 14px 14px 0 0;
+    border-radius: 16px 16px 0 0;
     background: var(--paper);
     box-shadow: 0 -12px 30px rgba(28, 36, 39, 0.18);
-    transform: translateY(110%);
+    transform: translateY(115%);
     transition: transform 220ms ease;
   }
 
@@ -500,18 +582,62 @@ input[type='range'] {
     transform: translateY(0);
   }
 
+  /* With a sheet open, the 3D view shrinks to the space above it so the model stays visible. */
+  .app[data-sheet='tree'] .app-view,
+  .app[data-sheet='panel'] .app-view {
+    margin-bottom: 58dvh;
+  }
+
+  .app[data-sheet='tree'] .dock,
+  .app[data-sheet='panel'] .dock {
+    display: none;
+  }
+
+  .sheet-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 8px 6px 16px;
+    border-bottom: 1px solid var(--rule);
+    flex: none;
+  }
+
+  .sheet-head::before {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    width: 40px;
+    height: 4px;
+    margin-left: -20px;
+    border-radius: 2px;
+    background: var(--rule);
+  }
+
+  .app-side .tabs {
+    flex: none;
+  }
+
   .mobile-nav {
     grid-area: nav;
     display: flex;
     border-top: 1px solid var(--rule);
     background: var(--paper-2);
+    padding-bottom: env(safe-area-inset-bottom);
+    z-index: 31;
   }
 
   .mobile-nav button {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
     border: 0;
     background: transparent;
     font-weight: 600;
+    font-size: 12.5px;
     color: var(--graphite);
   }
 
@@ -520,20 +646,127 @@ input[type='range'] {
     box-shadow: inset 0 2px 0 var(--ink);
   }
 
-  .dock {
-    bottom: 8px;
-    gap: 8px;
-    padding: 6px 8px;
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    overflow-x: auto;
-    width: auto;
+  .tree-row {
+    min-height: 44px;
   }
 
+  .icon-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .btn {
+    height: 40px;
+  }
+
+  .field {
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .chip {
+    height: 34px;
+    font-size: 13.5px;
+  }
+
+  /* Control bar: explode + play always; the rest behind "More". */
+  .dock {
+    bottom: 8px;
+    left: 8px;
+    right: 8px;
+    transform: none;
+    width: auto;
+    max-width: none;
+    gap: 8px;
+    padding: 8px 10px;
+    justify-content: flex-start;
+    border-radius: 14px;
+  }
+
+  .dock-sep {
+    display: none;
+  }
+
+  .dock-extra {
+    display: none;
+  }
+
+  .dock[data-open='true'] .dock-extra {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .dock-more {
+    display: inline-flex;
+    margin-left: auto;
+  }
+
+  .dock-explode input[type='range'] {
+    width: min(38vw, 180px) !important;
+  }
+
+  /* Model notice collapses to a small button. */
   .evidence-bar {
     top: 8px;
     left: 8px;
-    font-size: 11px;
+    right: auto;
+    max-width: calc(100% - 16px);
+    font-size: 12px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+  }
+
+  .evidence-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid var(--rule);
+    background: rgba(242, 244, 239, 0.95);
+    font-weight: 600;
+    font-size: 12px;
+  }
+
+  .evidence-full {
+    display: none;
+  }
+
+  .evidence-bar[data-open='true'] .evidence-full {
+    display: block;
+    margin-top: 6px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--rule);
+    background: rgba(242, 244, 239, 0.97);
+  }
+
+  /* Selected part card, shown while no sheet is open. */
+  .selection-card {
+    position: absolute;
+    top: 48px;
+    left: 8px;
+    right: 8px;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 8px 8px 10px;
+    border-radius: 12px;
+    border: 1px solid var(--rule);
+    background: rgba(242, 244, 239, 0.97);
+    box-shadow: 0 6px 18px rgba(28, 36, 39, 0.14);
+    z-index: 5;
+  }
+
+  .app[data-sheet='closed'] .selection-card[data-visible='true'] {
+    display: flex;
+  }
+
+  .selection-card[data-visible='false'] {
+    display: none;
   }
 
   .hide-mobile {
