@@ -349,7 +349,7 @@ function summaryPage(doc: jsPDF, input: PdfInput, bom: BomRow[]): { x: number; y
   const withPn = bom.filter((r) => r.confidence !== null).length
   const spares = bom.filter((r) => r.spare.startsWith('Yes')).length
   const stats: [string, string][] = [
-    [String(input.rows.length), 'parts in the model'],
+    [String(input.rows.length), 'parts listed'],
     [String(bom.length), 'distinct parts'],
     [String(withPn), 'with a printed part number'],
     [String(spares), 'recommended spares'],
