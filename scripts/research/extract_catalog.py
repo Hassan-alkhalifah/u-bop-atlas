@@ -26,7 +26,12 @@ NOT_IN_DRAWING = {39, 43}
 
 
 def clean(cell):
-    return re.sub(r"\s+", " ", (cell or "").replace("\n", " ")).strip()
+    text = cell or ""
+    # A word hyphenated at a line break inside a table cell ("Bon-\nnet") is one word.
+    text = re.sub(r"([a-z])-\n([a-z])", r"\1\2", text)
+    # A real hyphen that falls at a line break ("O-\nRing") keeps the hyphen.
+    text = re.sub(r"-\n(?=[A-Z0-9])", "-", text)
+    return re.sub(r"\s+", " ", text.replace("\n", " ")).strip()
 
 
 def table_rows(page_no):

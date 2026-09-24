@@ -15,6 +15,9 @@ export const BONNET_TYPE_LABEL: Record<BonnetType, string> = {
   tandemBooster: 'Standard bonnets with tandem boosters',
 }
 
+/** Catalog page that lists the part numbers of each bonnet type. */
+export const BONNET_PAGE: Record<BonnetType, number> = { standard: 12, largeBoreShear: 18, tandemBooster: 21 }
+
 export function locationLabel(cavity: CavityId, side: Side, stack: BopConfig['stack']): string {
   return stack === 'double' ? `${CAVITY_NAME[cavity]} ${SIDE_NAME[side]}` : SIDE_NAME[side]
 }

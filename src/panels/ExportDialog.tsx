@@ -1,39 +1,55 @@
 import { useEffect, useRef, useState } from 'react'
-import { create } from 'zustand'
-import { configSummary, DISCLAIMER, partRows, scopeIds, selectedTopAssembly, type ExportScope, type PartRow } from '../export/parts-list'
 import { NOT_AVAILABLE } from '../data/sources'
+import { partRows, scopeIds, selectedTopAssembly, type ExportScope } from '../export/parts-list'
+import { SNAPSHOT_FRAME } from '../export/pdf-kit'
 import { useViewer } from '../state/store'
 import { Icon } from './ui'
 
-export interface PrintJob {
-  summary: string
-  scopeLabel: string
-  rows: PartRow[]
-  snapshot: string | null
-  date: string
-}
+/** Longest side of the snapshot put into the PDF, in pixels: sharp in print, small enough to keep the file light. */
+const SNAPSHOT_MAX_PX = 1600
 
-/** The sheet the print stylesheet shows; set just before window.print(). */
-export const usePrintJob = create<{ job: PrintJob | null }>(() => ({ job: null }))
-
-function snapshot(): string | null {
+/**
+ * Picture of the current 3D view for the PDF, centre-cropped to the frame shape on the summary page
+ * (a little tighter than the full view, so the model fills the frame). Null when no canvas is available.
+ */
+function captureSnapshot(): { dataUrl: string; width: number; height: number } | null {
   const canvas = document.querySelector<HTMLCanvasElement>('.app-view canvas')
+  if (!canvas || !canvas.width || !canvas.height) return null
+  const aspect = SNAPSHOT_FRAME.w / SNAPSHOT_FRAME.h
+  let cw = canvas.width * 0.92
+  let ch = cw / aspect
+  if (ch > canvas.height * 0.92) {
+    ch = canvas.height * 0.92
+    cw = ch * aspect
+  }
+  const scale = Math.min(1, SNAPSHOT_MAX_PX / cw)
+  const out = document.createElement('canvas')
+  out.width = Math.round(cw * scale)
+  out.height = Math.round(ch * scale)
+  const ctx = out.getContext('2d')
+  if (!ctx) return null
   try {
-    return canvas ? canvas.toDataURL('image/jpeg', 0.9) : null
-  } catch {
+    ctx.drawImage(canvas, (canvas.width - cw) / 2, (canvas.height - ch) / 2, cw, ch, 0, 0, out.width, out.height)
+    return { dataUrl: out.toDataURL('image/jpeg', 0.88), width: out.width, height: out.height }
+  } catch (e: unknown) {
+    // The PDF still works without the picture; its summary page says so.
+    console.error('[export] could not capture the 3D view', e)
     return null
   }
 }
 
 const today = () => new Date().toISOString().slice(0, 10)
 const close = () => useViewer.setState({ dialog: null })
+const appUrl = () => `${window.location.origin}${window.location.pathname}`
+
+type Busy = 'pdf' | 'excel' | null
 
 /** Mounted only while the dialog is open, so it can follow the whole viewer state without cost when closed. */
 function ExportBody() {
   const state = useViewer()
   const assembly = selectedTopAssembly(state)
   const [scope, setScope] = useState<ExportScope>(() => (assembly ? 'assembly' : 'all'))
-  const [busy, setBusy] = useState(false)
+  const [busy, setBusy] = useState<Busy>(null)
   const [error, setError] = useState<string | null>(null)
 
   const options: { id: ExportScope; label: string }[] = [
@@ -46,26 +62,32 @@ function ExportBody() {
   const label = options.find((o) => o.id === scope)!.label
   const rows = () => partRows(state.dataset, scopeIds(state, scope))
 
-  const downloadExcel = async () => {
-    setBusy(true)
+  const run = async (kind: Exclude<Busy, null>, work: () => Promise<void>) => {
+    setBusy(kind)
     setError(null)
     try {
-      const { downloadPartsWorkbook } = await import('../export/xlsx')
-      await downloadPartsWorkbook(state.dataset, rows(), label, `u-bop-atlas-parts-${today()}.xlsx`)
+      await work()
     } catch (e: unknown) {
-      console.error('[export] Excel export failed', e)
-      setError('The Excel file could not be created. Try again, or use Print.')
+      console.error(`[export] ${kind} export failed`, e)
+      setError(`The ${kind === 'pdf' ? 'PDF' : 'Excel'} file could not be created. Try again, or try the other format.`)
     } finally {
-      setBusy(false)
+      setBusy(null)
     }
   }
 
-  const print = () => {
-    usePrintJob.setState({ job: { summary: configSummary(state.dataset), scopeLabel: label, rows: rows(), snapshot: snapshot(), date: today() } })
-    close()
-    // Two frames: the dialog closes and the sheet renders before the print dialog captures the page.
-    requestAnimationFrame(() => requestAnimationFrame(() => window.print()))
-  }
+  const downloadPdf = () =>
+    run('pdf', async () => {
+      // Taken before the module loads, while the view is exactly as the user sees it.
+      const snapshot = captureSnapshot()
+      const { downloadPartsPdf } = await import('../export/pdf')
+      downloadPartsPdf({ ds: state.dataset, rows: rows(), scopeLabel: label, snapshot, date: today(), appUrl: appUrl() }, `u-bop-atlas-parts-${today()}.pdf`)
+    })
+
+  const downloadExcel = () =>
+    run('excel', async () => {
+      const { downloadPartsWorkbook } = await import('../export/xlsx')
+      await downloadPartsWorkbook(state.dataset, rows(), label, `u-bop-atlas-parts-${today()}.xlsx`)
+    })
 
   return (
     <>
@@ -90,15 +112,15 @@ function ExportBody() {
       </fieldset>
       {error && <p role="alert" style={{ color: 'var(--warn)', margin: '8px 0 0' }}>{error}</p>}
       <div className="modal-actions">
-        <button type="button" className="btn btn-primary" disabled={busy || counts[scope] === 0} onClick={() => void downloadExcel()}>
-          <Icon name="download" size={15} /> {busy ? 'Preparing...' : 'Download Excel (.xlsx)'}
+        <button type="button" className="btn btn-primary" disabled={busy !== null || counts[scope] === 0} onClick={() => void downloadPdf()}>
+          <Icon name="download" size={15} /> {busy === 'pdf' ? 'Preparing PDF...' : 'Download PDF'}
         </button>
-        <button type="button" className="btn" disabled={counts[scope] === 0} onClick={print}>
-          <Icon name="print" size={15} /> Print or save as PDF
+        <button type="button" className="btn" disabled={busy !== null || counts[scope] === 0} onClick={() => void downloadExcel()}>
+          <Icon name="download" size={15} /> {busy === 'excel' ? 'Preparing...' : 'Download Excel (.xlsx)'}
         </button>
       </div>
       <p className="muted" style={{ margin: '10px 0 0', fontSize: 12 }}>
-        The Excel file has four sheets: parts by location, bill of materials, sources and an about page. The printed sheet includes a picture of the current 3D view; choose "Save as PDF" in the print dialog for a PDF file.
+        The PDF opens with a summary page and a picture of the current 3D view, then the bill of materials, the parts grouped by location, part number notes and the sources. The Excel file holds the same data in four sheets.
       </p>
     </>
   )
@@ -117,58 +139,5 @@ export function ExportDialog() {
     <dialog ref={ref} className="modal" aria-labelledby="export-title" onClose={close}>
       {open && <ExportBody />}
     </dialog>
-  )
-}
-
-export function PrintSheet() {
-  const job = usePrintJob((s) => s.job)
-  useEffect(() => {
-    const clear = () => usePrintJob.setState({ job: null })
-    window.addEventListener('afterprint', clear)
-    return () => window.removeEventListener('afterprint', clear)
-  }, [])
-  if (!job) return null
-  return (
-    <div className="print-sheet">
-      <header className="print-head">
-        <div>
-          <h1 className="heading" style={{ margin: 0, fontSize: 22 }}>U BOP Atlas parts list</h1>
-          <div>{job.summary}</div>
-          <div className="muted">
-            Scope: {job.scopeLabel}. {job.rows.length} rows. Printed {job.date}.
-          </div>
-        </div>
-        {job.snapshot && <img src={job.snapshot} alt="Current 3D view" className="print-shot" />}
-      </header>
-      <table className="print-table">
-        <thead>
-          <tr>
-            <th>Location</th>
-            <th>Item</th>
-            <th>Name</th>
-            <th>Part number</th>
-            <th>Evidence</th>
-            <th>Catalog quantity</th>
-            <th>Spare</th>
-            <th>Source</th>
-          </tr>
-        </thead>
-        <tbody>
-          {job.rows.map((r) => (
-            <tr key={r.id}>
-              <td>{r.location}</td>
-              <td>{r.item}</td>
-              <td>{r.name}</td>
-              <td className="mono">{r.partNumber}</td>
-              <td>{r.evidence}</td>
-              <td>{r.quantity}</td>
-              <td>{r.spare}</td>
-              <td>{r.sources}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <footer className="print-foot">The 3D model is an educational reconstruction, not Cameron or SLB CAD. {DISCLAIMER}</footer>
-    </div>
   )
 }

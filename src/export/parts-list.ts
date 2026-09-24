@@ -1,8 +1,8 @@
 // Parts lists for export (Excel and print). Every value is copied from the dataset claims, with its evidence
 // level and source; a missing value prints the standard "not available" text, never an estimate.
 import type { BopDataset } from '../data/build-bop'
-import { BONNET_TYPE_LABEL, locationLabel } from '../data/build-bonnet'
-import { ramKindLabel } from '../data/build-ram'
+import { BONNET_PAGE, BONNET_TYPE_LABEL, locationLabel } from '../data/build-bonnet'
+import { RAM_PAGE, ramKindLabel } from '../data/build-ram'
 import { activeCavities } from '../data/config'
 import { NOT_AVAILABLE, SOURCES } from '../data/sources'
 import type { Claim, Confidence, ComponentInstance, SourceId, SourceRef } from '../data/types'
@@ -39,16 +39,49 @@ export interface PartRow {
   kits: string
   sources: string
   notes: string
+  /** Part number evidence level; null when the catalog prints no part number. */
+  confidence: Confidence | null
+  /** Note attached to the part number claim (print anomaly, inference), or ''. */
+  pnNote: string
+  refs: SourceRef[]
 }
 
 export function refText(r: SourceRef): string {
   return `${SHORT_SOURCE[r.sourceId]}${r.page !== undefined ? ` p.${r.page}` : ''}`
 }
 
-function refsOf(claims: (Claim<unknown> | null)[]): string {
-  const out = new Set<string>()
-  for (const c of claims) for (const r of c?.sources ?? []) out.add(refText(r))
-  return [...out].join('; ')
+function refsOf(claims: (Claim<unknown> | null)[]): SourceRef[] {
+  const seen = new Set<string>()
+  const out: SourceRef[] = []
+  for (const c of claims) {
+    for (const r of c?.sources ?? []) {
+      const key = refText(r)
+      if (seen.has(key)) continue
+      seen.add(key)
+      out.push(r)
+    }
+  }
+  return out
+}
+
+const COMPACT_SOURCE: Record<SourceId, string> = {
+  'SRC-CAM-CAT-2014': 'Catalog',
+  'SRC-SLB-DS-2025': 'SLB data sheet',
+  'SRC-SLB-WEB': 'SLB web page',
+  'SRC-PAT': 'Patterson',
+  'SRC-QT': 'Quail Tools',
+}
+
+/** Short source text for narrow columns: "Catalog p.9, p.12; Patterson". */
+export function compactSources(refs: SourceRef[]): string {
+  const pages = new Map<SourceId, number[]>()
+  for (const r of refs) {
+    const list = pages.get(r.sourceId) ?? []
+    pages.set(r.sourceId, r.page !== undefined && !list.includes(r.page) ? [...list, r.page] : list)
+  }
+  return [...pages.entries()]
+    .map(([id, ps]) => (ps.length ? `${COMPACT_SOURCE[id]} ${[...ps].sort((a, b) => a - b).map((n) => `p.${n}`).join(', ')}` : COMPACT_SOURCE[id]))
+    .join('; ')
 }
 
 const LOCATION_ORDER = ['upper-L', 'upper-R', 'lower-L', 'lower-R']
@@ -65,6 +98,7 @@ function itemRank(c: ComponentInstance): number {
 
 export function partRow(c: ComponentInstance, ds: BopDataset): PartRow {
   const assembly = ds.assemblies.find((a) => a.id === c.assemblyId)?.name ?? ''
+  const refs = refsOf([c.partNumber, c.quantity, c.recommendedSpare, ...c.kits])
   return {
     id: c.id,
     location: c.cavity && c.side ? locationLabel(c.cavity, c.side, ds.config.stack) : 'body',
@@ -76,8 +110,11 @@ export function partRow(c: ComponentInstance, ds: BopDataset): PartRow {
     quantity: c.quantity?.value ?? NOT_AVAILABLE,
     spare: c.recommendedSpare ? (c.recommendedSpare.value ? 'Yes (marked * on SD17500)' : 'No') : '',
     kits: c.kits.map((k) => k.value).join(' | '),
-    sources: refsOf([c.partNumber, c.quantity, c.recommendedSpare, ...c.kits]),
+    sources: refs.map(refText).join('; '),
     notes: [c.partNumber?.note, ...c.notes].filter(Boolean).join(' '),
+    confidence: c.partNumber?.confidence ?? null,
+    pnNote: c.partNumber?.note ?? '',
+    refs,
   }
 }
 
@@ -100,6 +137,9 @@ export interface BomRow {
   spare: string
   kits: string
   sources: string
+  confidence: Confidence | null
+  pnNote: string
+  refs: SourceRef[]
 }
 
 /** One line per distinct part (same name, item and part number), with how many places it appears in the model. */
@@ -109,7 +149,10 @@ export function bomRows(rows: PartRow[]): BomRow[] {
     const key = `${r.item}|${r.name}|${r.partNumber}`
     const g = groups.get(key)
     if (g) g.instances += 1
-    else groups.set(key, { item: r.item, name: r.name, partNumber: r.partNumber, evidence: r.evidence, quantity: r.quantity, instances: 1, spare: r.spare, kits: r.kits, sources: r.sources })
+    else {
+      const { item, name, partNumber, evidence, quantity, spare, kits, sources, confidence, pnNote, refs } = r
+      groups.set(key, { item, name, partNumber, evidence, quantity, instances: 1, spare, kits, sources, confidence, pnNote, refs })
+    }
   }
   return [...groups.values()]
 }
@@ -151,6 +194,20 @@ export function configSummary(ds: BopDataset): string {
   const cavity = (id: 'upper' | 'lower') => `${ramKindLabel(c.rams[id])}; ${BONNET_TYPE_LABEL[c.bonnets[id]].toLowerCase()}`
   const parts = activeCavities(c).map((id) => (c.stack === 'double' ? `${id} cavity: ${cavity(id)}` : cavity(id)))
   return `Cameron U BOP 13-5/8" 10,000 psi, ${c.stack}. ${parts.join('. ')}.`
+}
+
+const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+
+/** The configuration as label/value pairs, each with the catalog page its part numbers come from. */
+export function setupRows(ds: BopDataset): [string, string][] {
+  const c = ds.config
+  const rows: [string, string][] = [['Stack', c.stack === 'double' ? 'Double BOP (upper and lower ram cavities)' : 'Single BOP (one ram cavity)']]
+  for (const id of activeCavities(c)) {
+    const label = c.stack === 'double' ? `${capital(id)} cavity` : 'Ram cavity'
+    rows.push([`${label}, rams`, `${capital(ramKindLabel(c.rams[id]))} (catalog p.${RAM_PAGE[c.rams[id].type]})`])
+    rows.push([`${label}, bonnets`, `${BONNET_TYPE_LABEL[c.bonnets[id]]} (catalog p.${BONNET_PAGE[c.bonnets[id]]})`])
+  }
+  return rows
 }
 
 export const DISCLAIMER =

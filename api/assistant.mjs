@@ -787,7 +787,7 @@ var cameron_catalog_13_5_8_10k_default = {
     },
     {
       item: 32,
-      description: "O-Ring, Ram Change Cylinder to Bon- net",
+      description: "O-Ring, Ram Change Cylinder to Bonnet",
       qtySingle: "4",
       qtyDouble: "8",
       partNumber10k: "702645-42-51",

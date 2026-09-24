@@ -248,10 +248,6 @@ textarea {
   cursor: default;
 }
 
-.print-sheet {
-  display: none;
-}
-
 /* Learn: lessons and quiz */
 .learn {
   padding: 16px 18px 20px;
@@ -1118,67 +1114,6 @@ input[type='range'] {
     left: 12px;
     right: 12px;
     width: auto;
-  }
-}
-
-@media print {
-  @page {
-    size: A4 landscape;
-    margin: 10mm;
-  }
-
-  body {
-    background: #fff;
-  }
-
-  #root > .app,
-  .modal {
-    display: none !important;
-  }
-
-  .print-sheet {
-    display: block;
-    font-size: 9.5pt;
-    color: #000;
-  }
-
-  .print-head {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 10px;
-  }
-
-  .print-shot {
-    width: 70mm;
-    height: auto;
-    border: 1px solid #999;
-  }
-
-  .print-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  .print-table th,
-  .print-table td {
-    border: 1px solid #999;
-    padding: 2px 4px;
-    text-align: left;
-    vertical-align: top;
-  }
-
-  .print-table thead {
-    display: table-header-group;
-  }
-
-  .print-table tr {
-    break-inside: avoid;
-  }
-
-  .print-foot {
-    margin-top: 8px;
-    font-size: 8.5pt;
   }
 }
 

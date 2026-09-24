@@ -4,7 +4,7 @@ import { ComponentTree } from './panels/ComponentTree'
 import { ConfigPanel } from './panels/ConfigPanel'
 import { ControlDock, EvidenceBar } from './panels/ControlDock'
 import { DetailPanel } from './panels/DetailPanel'
-import { ExportDialog, PrintSheet } from './panels/ExportDialog'
+import { ExportDialog } from './panels/ExportDialog'
 import { HeaderActions } from './panels/HeaderActions'
 import { LearnPanel } from './panels/LearnPanel'
 import { SelectionCard, SheetHead } from './panels/MobileParts'
@@ -97,12 +97,4 @@ export function App() {
   )
 }
 
-/** The app plus the print-only parts sheet, which sits outside the app grid so print can hide the app. */
-export function Root() {
-  return (
-    <>
-      <App />
-      <PrintSheet />
-    </>
-  )
-}
+

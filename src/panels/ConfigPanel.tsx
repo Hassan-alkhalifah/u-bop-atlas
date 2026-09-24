@@ -1,4 +1,4 @@
-import { BONNET_TYPE_LABEL } from '../data/build-bonnet'
+import { BONNET_PAGE, BONNET_TYPE_LABEL } from '../data/build-bonnet'
 import { RAM_PAGE } from '../data/build-ram'
 import { FLEXPACKER_NR_ROWS, SELECTABLE_PIPE_SIZES, VBR_ROWS } from '../data/catalog'
 import { decodeBonnetType, decodeRamKind, encodeBonnetType, encodeRamKind } from '../data/config-codec'
@@ -7,7 +7,6 @@ import { dispatch } from '../state/commands'
 import { useViewer } from '../state/store'
 import { PAINTS, type PaintId } from '../viewer/paints'
 
-const BONNET_PAGE: Record<BonnetType, number> = { standard: 12, largeBoreShear: 18, tandemBooster: 21 }
 const BONNET_TYPES = Object.keys(BONNET_TYPE_LABEL) as BonnetType[]
 
 function CavitySetup({ cavity, config }: { cavity: CavityId; config: BopConfig }) {

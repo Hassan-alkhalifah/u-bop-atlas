@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { Root } from './App'
+import { App } from './App'
 import './index.css'
 import { DEFAULT_CONFIG } from './data/config'
 import { applySharedView, parseShareParams } from './state/share'
@@ -18,6 +18,6 @@ if (!root) throw new Error('Root element #root not found')
 
 createRoot(root).render(
   <StrictMode>
-    <Root />
+    <App />
   </StrictMode>,
 )

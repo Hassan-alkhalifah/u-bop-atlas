@@ -1,5 +1,5 @@
 // Help, greetings, reset, view settings (x-ray, evidence, paint, quality) and configuration changes.
-import { BONNET_TYPE_LABEL } from '../../data/build-bonnet'
+import { BONNET_PAGE, BONNET_TYPE_LABEL } from '../../data/build-bonnet'
 import { RAM_PAGE, ramKindLabel } from '../../data/build-ram'
 import { FLEXPACKER_NR_ROWS, SELECTABLE_PIPE_SIZES, VBR_ROWS } from '../../data/catalog'
 import { activeCavities } from '../../data/config'
@@ -137,7 +137,6 @@ function bonnetTypeFrom(t: string): BonnetType | null {
   return null
 }
 
-const BONNET_PAGE: Record<BonnetType, number> = { standard: 12, largeBoreShear: 18, tandemBooster: 21 }
 
 /** Bonnet change: "large bore shear bonnets", "add tandem boosters to the lower cavity", "standard bonnets". */
 function bonnetChange(config: BopConfig, t: string): AssistantReply | null {
