@@ -1,7 +1,7 @@
 import { locationLabel } from '../data/build-bonnet'
 import { dispatch } from '../state/commands'
 import { useViewer } from '../state/store'
-import { Balloon, Icon } from './ui'
+import { Balloon, balloonText, Icon } from './ui'
 
 /** Header with a close button for the phone bottom sheets. */
 export function SheetHead({ title }: { title: string }) {
@@ -23,7 +23,7 @@ export function SelectionCard() {
     <div className="selection-card" data-visible={!!c} aria-live="polite">
       {c && (
         <>
-          <Balloon n={c.catalogItem} />
+          <Balloon n={balloonText(c)} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}</div>
             <div className="muted" style={{ fontSize: 12, textTransform: 'capitalize' }}>

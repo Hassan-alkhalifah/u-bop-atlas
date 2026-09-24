@@ -2,7 +2,7 @@
 // Change Cylinder to Bonnet") or a catalog figure shows it; D = inferred from arrangement and labelled as such.
 import { activeCavities } from './config'
 import { cat, claim } from './sources'
-import type { BopConfig, Claim, ComponentInstance, Connection, ConnectionKind, Side } from './types'
+import type { BonnetType, BopConfig, Claim, ComponentInstance, Connection, ConnectionKind, Side } from './types'
 
 type Edge = [string, string, ConnectionKind, Claim<string>]
 
@@ -13,9 +13,48 @@ const shown = (page: number, what: string): Claim<string> => claim(`Shown in the
 
 const inferred = (why: string): Claim<string> => claim(`Inferred, not stated in a source: ${why}.`, [cat(9)], 'D')
 
-function bonnetEdges(p: string): Edge[] {
+const namedLb = (item: string, desc: string): Claim<string> =>
+  claim(`The catalog part name "${desc}" (item ${item}, large-bore shear bonnet) identifies this interface.`, [cat(18, undefined, `item ${item}`)], 'A')
+
+const BOOSTER_LOCK = claim(
+  'The standard shear locking mechanism can be installed on the outside end of the booster.',
+  [cat(20, "Since the tail rod of the tandem booster has the same stroke as the BOP's operating piston, the standard shear locking mechanism can be installed on the outside end of the booster.")],
+  'A',
+)
+
+function boosterEdges(p: string): Edge[] {
+  const i = (n: number) => `${p}/i${String(n).padStart(2, '0')}`
+  const tb = (n: number) => `${p}/tb${String(n).padStart(2, '0')}`
+  const adjacent = inferred('adjacent in the tandem booster exploded view (p.21)')
+  const seat = (what: string) => inferred(`seal seat not documented; drawn next to the ${what} on p.21`)
+  return [
+    [tb(4), i(6), 'fastened', inferred('the booster sits between the operating cylinder and the lock, which moves to the outside end of the booster (p.20)')],
+    [tb(8), tb(4), 'fastened', adjacent],
+    [tb(8), i(6), 'fastened', inferred('the long cap screws hold the cylinder head to the bonnet operating cylinder')],
+    [tb(3), tb(4), 'mechanical', adjacent],
+    [tb(6), tb(3), 'sliding', inferred('the booster piston moves inside the booster cylinder')],
+    [tb(5), tb(6), 'mechanical', adjacent],
+    [tb(6), i(5), 'mechanical', inferred('the booster piston is driven together with the operating piston (same stroke, p.20)')],
+    [tb(1), tb(3), 'mechanical', adjacent],
+    [tb(7), tb(1), 'fastened', adjacent],
+    [i(7), tb(1), 'mechanical', BOOSTER_LOCK],
+    [i(8), tb(5), 'mechanical', inferred('the locking screw bears on the booster tail rod, which has the operating piston stroke (p.20)')],
+    [tb(9), tb(4), 'seal-interface', seat('cylinder head')],
+    [tb(10), tb(4), 'seal-interface', seat('cylinder head')],
+    [tb(11), tb(3), 'seal-interface', seat('cylinder')],
+    [tb(12), tb(6), 'seal-interface', seat('piston')],
+    [tb(13), tb(6), 'seal-interface', seat('piston')],
+    [tb(14), tb(1), 'seal-interface', seat('tail rod')],
+    [tb(15), tb(1), 'seal-interface', seat('tail rod')],
+    [tb(16), tb(3), 'hydraulic', inferred('the quiet muffler filter is drawn on top of the booster cylinder')],
+    [tb(2), tb(1), 'mechanical', inferred('pipe plug listed with the adapter plate')],
+  ]
+}
+
+function bonnetEdges(p: string, type: BonnetType): Edge[] {
   const i = (n: number) => `${p}/i${String(n).padStart(2, '0')}`
   const ram = `${p}/ram-body`
+  const booster = type === 'tandemBooster'
   return [
     [i(12), i(3), 'fastened', claim('Bonnet bolts hold the bonnet closed against the preventer body.', [cat(6)], 'A')],
     [i(12), 'body', 'fastened', claim('Bonnet bolts hold the bonnet closed against the preventer body.', [cat(6)], 'A')],
@@ -26,12 +65,12 @@ function bonnetEdges(p: string): Edge[] {
     [i(35), i(3), 'fastened', named(35, 'Cap Screw, Int Flange to Bonnet')],
     [i(2), i(3), 'mechanical', inferred('adjacent in exploded view SD17500')],
     [i(6), i(2), 'mechanical', inferred('adjacent in exploded view SD17500')],
-    [i(7), i(6), 'mechanical', inferred('adjacent in exploded view SD17500')],
+    ...(booster ? [] : ([[i(7), i(6), 'mechanical', inferred('adjacent in exploded view SD17500')]] as Edge[])),
     [i(13), i(7), 'fastened', named(13, 'Stud, Locking Screw Housing')],
     [i(14), i(7), 'fastened', named(14, 'Nut, Locking Screw Housing')],
     [i(14), i(13), 'fastened', inferred('nuts thread onto the housing studs')],
     [i(8), i(7), 'mechanical', named(7, 'Housing, Locking Screw')],
-    [i(8), i(5), 'mechanical', inferred('the locking screw bears on the tail end of the operating piston when locked')],
+    ...(booster ? [] : ([[i(8), i(5), 'mechanical', inferred('the locking screw bears on the tail end of the operating piston when locked')]] as Edge[])),
     [i(5), i(6), 'sliding', shown(6, 'operating piston inside the operating cylinder')],
     [i(26), i(5), 'seal-interface', named(26, 'Lip Seal, Operating Piston')],
     [i(42), i(5), 'seal-interface', named(42, 'Wear Ring, Operating Piston')],
@@ -71,6 +110,10 @@ function bonnetEdges(p: string): Edge[] {
     [`${p}/ram-topSeal`, ram, 'contained', shown(41, 'ram, packer and top seal form one pipe ram (sketch Sd-10825)')],
     [`${p}/ram-bladePacker`, ram, 'contained', shown(47, 'shear ram with blade packer')],
     [`${p}/ram-sidePackers`, ram, 'contained', shown(53, 'side packers on the shear ram bodies')],
+    [`${p}/ram-bladeSeals`, ram, 'contained', shown(52, 'ISR blade seals on the upper ram (SD 034603)')],
+    [`${p}/i24a`, i(2), 'seal-interface', namedLb('24A', 'O-Ring, Int Flg to Bonnet Lip')],
+    [`${p}/i24a`, i(3), 'seal-interface', namedLb('24A', 'O-Ring, Int Flg to Bonnet Lip')],
+    ...(booster ? boosterEdges(p) : []),
     [ram, 'body', 'sliding', claim('Wellbore pressure acts on the rams inside the body.', [cat(5)], 'A')],
   ]
 }
@@ -78,7 +121,7 @@ function bonnetEdges(p: string): Edge[] {
 export function buildConnections(config: BopConfig, byId: Map<string, ComponentInstance>): Connection[] {
   const edges: Edge[] = []
   for (const cavity of activeCavities(config)) {
-    for (const side of ['L', 'R'] as Side[]) edges.push(...bonnetEdges(`${cavity}-${side}`))
+    for (const side of ['L', 'R'] as Side[]) edges.push(...bonnetEdges(`${cavity}-${side}`, config.bonnets[cavity]))
     edges.push([`${cavity}-L/ram-body`, `${cavity}-R/ram-body`, 'mechanical', shown(6, 'opposing rams meet at the bore centreline when closed')])
     for (const n of [1, 2]) {
       for (const side of ['L', 'R'] as Side[]) {

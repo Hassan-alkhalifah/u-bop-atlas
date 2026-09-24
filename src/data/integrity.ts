@@ -1,8 +1,8 @@
 // Integrity rules for the dataset. Run by `npm run validate` (build fails on any error) and by tests.
 import { buildBop } from './build-bop'
-import { allExtractedStrings, SELECTABLE_PIPE_SIZES } from './catalog'
+import { allExtractedStrings, FLEXPACKER_NR_ROWS, SELECTABLE_PIPE_SIZES, VBR_ROWS } from './catalog'
 import { SOURCES } from './sources'
-import type { BopConfig, Claim, ComponentInstance, RamKind } from './types'
+import type { BonnetType, BopConfig, Claim, ComponentInstance, RamKind } from './types'
 
 function claimsOf(c: ComponentInstance): { label: string; claim: Claim<unknown> }[] {
   const out: { label: string; claim: Claim<unknown> }[] = []
@@ -50,16 +50,31 @@ export function checkConfig(config: BopConfig): string[] {
   return errors
 }
 
+export const ALL_RAM_KINDS: RamKind[] = [
+  ...SELECTABLE_PIPE_SIZES.map((pipeSize) => ({ type: 'pipe' as const, pipeSize })),
+  { type: 'blind' },
+  { type: 'sbr' },
+  { type: 'isr' },
+  ...VBR_ROWS.map((r) => ({ type: 'vbr' as const, id: r.id })),
+  ...FLEXPACKER_NR_ROWS.map((r) => ({ type: 'flexpacker' as const, id: r.id })),
+]
+
+export const BONNET_TYPES: BonnetType[] = ['standard', 'largeBoreShear', 'tandemBooster']
+
+/** Every ram kind in both stacks, and every bonnet type on each cavity. */
 export function allConfigs(): BopConfig[] {
-  const kinds: RamKind[] = [...SELECTABLE_PIPE_SIZES.map((pipeSize) => ({ type: 'pipe' as const, pipeSize })), { type: 'blind' }, { type: 'sbr' }]
   const configs: BopConfig[] = []
-  for (const k of kinds) {
-    configs.push({ stack: 'single', rams: { upper: k, lower: { type: 'blind' } } })
-    configs.push({ stack: 'double', rams: { upper: k, lower: { type: 'sbr' } } })
+  for (const k of ALL_RAM_KINDS) {
+    configs.push({ stack: 'single', rams: { upper: k, lower: { type: 'blind' } }, bonnets: { upper: 'standard', lower: 'standard' } })
+    configs.push({ stack: 'double', rams: { upper: k, lower: { type: 'sbr' } }, bonnets: { upper: 'standard', lower: 'standard' } })
+  }
+  for (const b of BONNET_TYPES) {
+    configs.push({ stack: 'single', rams: { upper: { type: 'isr' }, lower: { type: 'blind' } }, bonnets: { upper: b, lower: 'standard' } })
+    configs.push({ stack: 'double', rams: { upper: { type: 'pipe', pipeSize: '5.000' }, lower: { type: 'sbr' } }, bonnets: { upper: 'standard', lower: b } })
   }
   return configs
 }
 
 export function checkAll(): string[] {
-  return allConfigs().flatMap((cfg) => checkConfig(cfg).map((e) => `[${cfg.stack} ${JSON.stringify(cfg.rams.upper)}] ${e}`))
+  return allConfigs().flatMap((cfg) => checkConfig(cfg).map((e) => `[${cfg.stack} ${JSON.stringify(cfg.rams)} ${JSON.stringify(cfg.bonnets)}] ${e}`))
 }

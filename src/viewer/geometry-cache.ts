@@ -81,15 +81,18 @@ function extrudeVertical(shape: THREE.Shape, height: number, bevel: number): THR
 
 /**
  * Ram block in its own frame: front face toward -X (the bore), width along Z, height along Y.
- * A pipe ram has a half-round cutout in the front face; a shear ram has a slanted front.
+ * A pipe ram has a half-round cutout in the front face; a shear ram has a slanted front; an ISR ram has a
+ * "V" front (convex for vee > 0, concave for vee < 0).
  */
-function ramBlock(depth: number, height: number, width: number, cutoutR: number, chamfer: number): THREE.BufferGeometry {
+function ramBlock(depth: number, height: number, width: number, cutoutR: number, chamfer: number, vee: number): THREE.BufferGeometry {
   const bevel = 0.3
   const x0 = -depth / 2 + bevel
   const x1 = depth / 2 - bevel
   const hw = width / 2 - bevel
   const s = new THREE.Shape()
-  const frontAt = (z: number) => x0 + (chamfer > 0 ? chamfer * ((hw - z) / (2 * hw)) : chamfer < 0 ? -chamfer * ((z + hw) / (2 * hw)) : 0)
+  const slant = (z: number) => (chamfer > 0 ? chamfer * ((hw - z) / (2 * hw)) : chamfer < 0 ? -chamfer * ((z + hw) / (2 * hw)) : 0)
+  const veeAt = (z: number) => -vee / 2 + (vee * Math.abs(z)) / hw
+  const frontAt = (z: number) => x0 + slant(z) + veeAt(z)
   s.moveTo(frontAt(-hw), -hw)
   s.lineTo(x1 - 1.2, -hw)
   s.quadraticCurveTo(x1, -hw, x1, -hw + 1.2)
@@ -101,6 +104,8 @@ function ramBlock(depth: number, height: number, width: number, cutoutR: number,
     s.lineTo(x0, r)
     s.absarc(x0, 0, r, Math.PI / 2, -Math.PI / 2, true)
     s.lineTo(x0, -hw)
+  } else if (vee !== 0) {
+    s.lineTo(frontAt(0), 0)
   }
   s.closePath()
   return extrudeVertical(s, height, bevel)
@@ -130,7 +135,7 @@ function build(shape: Shape): THREE.BufferGeometry {
     case 'plate':
       return plate(shape)
     case 'ramBlock':
-      return ramBlock(shape.depth, shape.height, shape.width, shape.cutoutR, shape.chamfer)
+      return ramBlock(shape.depth, shape.height, shape.width, shape.cutoutR, shape.chamfer, shape.vee ?? 0)
   }
 }
 

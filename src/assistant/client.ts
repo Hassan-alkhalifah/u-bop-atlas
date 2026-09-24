@@ -45,10 +45,10 @@ async function askServer(message: string, history: ChatMessage[], config: BopCon
   }
 }
 
-/** Run commands from the assistant without pulling the user away from the chat. */
+/** Run commands from the assistant without pulling the user away from the chat (unless it opens Learn). */
 function runCommands(commands: Command[]): void {
   for (const cmd of commands) dispatch(cmd)
-  useViewer.setState({ panelTab: 'assistant' })
+  if (!commands.some((c) => c.type === 'openLearn')) useViewer.setState({ panelTab: 'assistant' })
 }
 
 const HELP = /^(help|\?|commands?|menu)\b/i

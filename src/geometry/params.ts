@@ -1,6 +1,7 @@
 // Every dimension the model generator uses, with its provenance tier.
 // T2 values come from documents; T3 values are educational approximations sized to fit the T2 envelope.
 // To improve accuracy, change a value here, set its tier and sources, and the model regenerates.
+import { LB_OPERATING_DATA, OPERATING_DATA } from '../data/catalog'
 import type { GeometryParam, SourceRef } from '../data/types'
 
 const PAT: SourceRef = { sourceId: 'SRC-PAT', locator: 'rows 4, 7, 8, 23' }
@@ -15,6 +16,8 @@ const T3 = (id: string, label: string, value: number, rationale: string): Geomet
   sources: [],
   rationale,
 })
+
+const ratio = (text: string) => Number(text.split(':')[0])
 
 export const PARAMS = {
   boreDiameter: {
@@ -87,6 +90,13 @@ export const PARAMS = {
   lockHousingLength: T3('lockHousingLength', 'Locking screw housing length', 5, 'No public value.'),
   lockTravel: T3('lockTravel', 'Locking screw travel (locked to unlocked)', 9, 'No public value. The catalog documents 32 turns per end (p.7) but not the thread pitch.'),
   rcCylinderRadius: T3('rcCylinderRadius', 'Ram-change cylinder radius', 1.8, 'No public value.'),
+  lbCylinderRadius: T3(
+    'lbCylinderRadius',
+    'Large-bore shear bonnet operating cylinder outer radius',
+    6.5 * Math.sqrt(ratio(LB_OPERATING_DATA.closingRatio) / ratio(OPERATING_DATA.closingRatio)),
+    `No public value. Scaled from the standard cylinder by the square root of the documented closing ratios (${LB_OPERATING_DATA.closingRatio} large bore vs ${OPERATING_DATA.closingRatio} standard, catalog p.7), assuming the same connecting rod.`,
+  ),
+  boosterLength: T3('boosterLength', 'Tandem booster length (head, cylinder and adapter plate)', 16, 'No public value. Sized to hold a piston stroke equal to the operating piston stroke (catalog p.20).'),
 } satisfies Record<string, GeometryParam>
 
 export type ParamId = keyof typeof PARAMS

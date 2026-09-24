@@ -2,6 +2,8 @@ import { create } from 'zustand'
 import { buildBop, type BopDataset } from '../data/build-bop'
 import { DEFAULT_CONFIG } from '../data/config'
 import type { BopConfig, CavityId, SystemId } from '../data/types'
+import type { QuizMode } from '../learn/quiz'
+import type { CameraPose } from '../viewer/camera-bridge'
 import type { PaintId } from '../viewer/paints'
 
 export interface CavityState {
@@ -11,7 +13,9 @@ export interface CavityState {
   bolts: number
 }
 
-export type PanelTab = 'details' | 'assistant'
+export type PanelTab = 'details' | 'assistant' | 'learn'
+
+export type DialogId = 'export' | 'share'
 
 export interface ViewerState {
   dataset: BopDataset
@@ -29,6 +33,11 @@ export interface ViewerState {
   kinematics: Readonly<Record<CavityId, CavityState>>
   playingAnimation: string | null
   focusRequest: { id: string; nonce: number } | null
+  /** Exact camera pose to move to (share links). */
+  cameraRequest: { pose: CameraPose; nonce: number } | null
+  dialog: DialogId | null
+  /** Set by the openLearn command (assistant); the Learn panel starts the lesson or quiz. */
+  learnRequest: { lessonId?: string; quiz?: QuizMode; nonce: number } | null
   panelTab: PanelTab
   mobileSheet: 'closed' | 'tree' | 'panel'
   paint: PaintId
@@ -60,6 +69,9 @@ export function initialState(config: BopConfig = DEFAULT_CONFIG): ViewerState {
     kinematics: { upper: { ...CLOSED_LOCKED }, lower: { ...CLOSED_LOCKED } },
     playingAnimation: null,
     focusRequest: null,
+    cameraRequest: null,
+    dialog: null,
+    learnRequest: null,
     panelTab: 'details',
     mobileSheet: 'closed',
     paint: 'grey',

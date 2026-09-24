@@ -1,7 +1,9 @@
 import { bodyGeometry, flangeStudGeometry, outletGeometry, portGeometry } from '../geometry/body-geometry'
 import type { BonnetFrame } from '../geometry/frame'
 import { cavityCentres, overallHeight } from '../geometry/params'
-import { bonnetAssemblies, bonnetInstances, locationLabel, ramInstances } from './build-bonnet'
+import { bonnetAssemblies, bonnetInstances, locationLabel } from './build-bonnet'
+import { boosterInstances } from './build-booster'
+import { ramInstances } from './build-ram'
 import { activeCavities, DEFAULT_CONFIG } from './config'
 import { buildConnections } from './connections'
 import { cat, claim } from './sources'
@@ -152,8 +154,8 @@ export function buildBop(config: BopConfig = DEFAULT_CONFIG): BopDataset {
   for (const cavity of activeCavities(config)) {
     for (const side of ['L', 'R'] as Side[]) {
       const f = frameFor(config, cavity, side)
-      assemblies.push(...bonnetAssemblies(cavity, side, config.stack))
-      components.push(...bonnetInstances(cavity, side, f, config), ...ramInstances(cavity, side, f, config))
+      assemblies.push(...bonnetAssemblies(cavity, side, config))
+      components.push(...bonnetInstances(cavity, side, f, config), ...boosterInstances(cavity, side, f, config), ...ramInstances(cavity, side, f, config))
     }
   }
   const byId = new Map(components.map((c) => [c.id, c]))

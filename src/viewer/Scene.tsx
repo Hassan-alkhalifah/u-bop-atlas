@@ -1,6 +1,6 @@
 import { CameraControls, Html, Line } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { overallHeight } from '../geometry/params'
 import { componentsInAssembly, dispatch } from '../state/commands'
@@ -8,11 +8,34 @@ import { useViewer } from '../state/store'
 import { ComponentModel } from './ComponentModel'
 import { objectRegistry } from './object-registry'
 import { Stage } from './Stage'
+import { cameraBridge } from './camera-bridge'
 import { componentCenter, floorDrop } from './kinematics'
 
 function FocusController() {
   const controls = useRef<CameraControls>(null)
   const focus = useViewer((s) => s.focusRequest)
+  const cameraRequest = useViewer((s) => s.cameraRequest)
+  const posed = useRef(false)
+  useEffect(() => {
+    const c = controls.current
+    if (!c) return
+    cameraBridge.read = () => {
+      const p = c.getPosition(new THREE.Vector3())
+      const t = c.getTarget(new THREE.Vector3())
+      return { position: [p.x, p.y, p.z], target: [t.x, t.y, t.z] }
+    }
+    return () => {
+      cameraBridge.read = null
+    }
+  }, [])
+  useEffect(() => {
+    const c = controls.current
+    if (!c || !cameraRequest) return
+    const { position: p, target: t } = cameraRequest.pose
+    // The first pose (from a share link) is applied instantly; later ones animate.
+    void c.setLookAt(p[0], p[1], p[2], t[0], t[1], t[2], posed.current)
+    posed.current = true
+  }, [cameraRequest])
   useEffect(() => {
     const c = controls.current
     if (!c || !focus) return
@@ -65,7 +88,14 @@ function ConnectionLinesActive({ sourceId }: { sourceId: string }) {
 
 function SelectionLabel() {
   const selectedId = useViewer((s) => s.selectedId)
-  return selectedId ? <SelectionLabelActive selectedId={selectedId} /> : null
+  // <Html> needs the canvas attached to the page. A part selected before the scene mounts (share link)
+  // would otherwise create the label too early and never show it, so wait one frame.
+  const [ready, setReady] = useState(false)
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setReady(true))
+    return () => cancelAnimationFrame(id)
+  }, [])
+  return ready && selectedId ? <SelectionLabelActive selectedId={selectedId} /> : null
 }
 
 function SelectionLabelActive({ selectedId }: { selectedId: string }) {
@@ -76,7 +106,7 @@ function SelectionLabelActive({ selectedId }: { selectedId: string }) {
   return (
     <Html position={[x, y, z]} center zIndexRange={[20, 0]} style={{ pointerEvents: 'none' }}>
       <div className="callout">
-        {c.catalogItem !== undefined && <span className="balloon balloon-sm">{c.catalogItem}</span>}
+        {(c.itemLabel ?? c.catalogItem) !== undefined && <span className={`balloon balloon-sm ${(c.itemLabel ?? '').length > 2 ? 'balloon-wide' : ''}`}>{c.itemLabel ?? c.catalogItem}</span>}
         <span>{c.name}</span>
       </div>
     </Html>
@@ -98,7 +128,13 @@ export function Scene() {
   const stack = useViewer((s) => s.dataset.config.stack)
   const drop = useViewer((s) => (s.dataset.config.stack === 'double' ? floorDrop(s) : 0))
   const floorY = -overallHeight(stack).value / 2 - 0.5 - drop
+  const prevStack = useRef(stack)
   useEffect(() => {
+    const changed = prevStack.current !== stack
+    prevStack.current = stack
+    // A share link with a camera pose or a focused part keeps that view instead of the default overview.
+    const s = useViewer.getState()
+    if (!changed && (s.cameraRequest || s.focusRequest)) return
     const t = setTimeout(() => dispatch({ type: 'focusCamera', id: 'bop' }), 60)
     return () => clearTimeout(t)
   }, [stack])

@@ -1,7 +1,10 @@
 // Help, greetings, reset, view settings (x-ray, evidence, paint, quality) and configuration changes.
-import { SELECTABLE_PIPE_SIZES } from '../../data/catalog'
-import type { BopConfig, CavityId, RamKind } from '../../data/types'
-import { parseLocation, parsePipeSize } from '../parse'
+import { BONNET_TYPE_LABEL } from '../../data/build-bonnet'
+import { RAM_PAGE, ramKindLabel } from '../../data/build-ram'
+import { FLEXPACKER_NR_ROWS, SELECTABLE_PIPE_SIZES, VBR_ROWS } from '../../data/catalog'
+import { activeCavities } from '../../data/config'
+import type { BonnetType, BopConfig, CavityId, RamKind } from '../../data/types'
+import { parseLocation, parsePipeSize, parseSizeInches } from '../parse'
 import type { AssistantReply, Intent } from '../types'
 
 export const HELP_TEXT = `Here is what I can do. Tap an example or type your own.
@@ -46,7 +49,15 @@ View and setup
 - paint red / paint grey
 - single BOP / double BOP
 - upper rams blind / lower rams 5 inch pipe / lower rams shear
+- lower rams ISR / upper rams VBR 5 inch / upper rams flexpacker
+- large bore shear bonnets / tandem boosters / standard bonnets
 - high quality / standard quality
+
+Learn, share and export
+- start the tour / lessons
+- lesson on shearing / lesson on sealing
+- quiz me / name the part quiz
+- share this view / export the parts list
 
 After selecting a part you can say "hide it", "isolate it", "its part number" or "its connections".`
 
@@ -89,7 +100,26 @@ export const viewSettings: Intent = ({ t }) => {
   return null
 }
 
-function ramKindFrom(t: string): RamKind | 'unknown-size' | null {
+type RangeRow = { id: string; min: number; max: number }
+
+/** The range that contains the requested pipe size, else the first range; null when a size fits no range. */
+function pickRange<R extends RangeRow>(rows: R[], size: number | null): R | null {
+  if (size === null) return rows[0] ?? null
+  return rows.find((r) => size >= r.min - 1e-6 && size <= r.max + 1e-6) ?? null
+}
+
+function ramKindFrom(t: string): RamKind | 'unknown-size' | 'no-range' | null {
+  if (/\b(isr|interlocking)\b/.test(t)) return { type: 'isr' }
+  if (/\bflex ?packers?(-nr)?\b/.test(t)) {
+    const row = pickRange(FLEXPACKER_NR_ROWS, parseSizeInches(t))
+    return row ? { type: 'flexpacker', id: row.id } : 'no-range'
+  }
+  if (/\b(vbr(-?ii)?|variable( bore)?)\b/.test(t)) {
+    const highTemp = /\b(high temp(erature)?|extended( range)?|hi temp)\b/.test(t)
+    const rows = VBR_ROWS.filter((r) => r.highTemp === highTemp)
+    const row = pickRange(rows, parseSizeInches(t))
+    return row ? { type: 'vbr', id: row.id } : 'no-range'
+  }
   if (/\b(shear|shearing|sbr|cutting)\b/.test(t)) return { type: 'sbr' }
   if (/\bblind\b/.test(t)) return { type: 'blind' }
   const size = parsePipeSize(t)
@@ -98,7 +128,36 @@ function ramKindFrom(t: string): RamKind | 'unknown-size' | null {
   return null
 }
 
-const kindLabel = (k: RamKind) => (k.type === 'pipe' ? `${k.pipeSize} in pipe rams` : k.type === 'blind' ? 'blind rams' : 'shearing blind rams')
+const isShear = (k: RamKind) => k.type === 'sbr' || k.type === 'isr'
+
+function bonnetTypeFrom(t: string): BonnetType | null {
+  if (/\b(remove|without|no)\b.*\bboosters?\b/.test(t) || /\bstandard bonnets?\b/.test(t)) return 'standard'
+  if (/\b(large[- ]?bore|lb)( shear)? bonnets?\b|\bshear bonnets?\b/.test(t)) return 'largeBoreShear'
+  if (/\b(tandem )?boosters?\b/.test(t)) return 'tandemBooster'
+  return null
+}
+
+const BONNET_PAGE: Record<BonnetType, number> = { standard: 12, largeBoreShear: 18, tandemBooster: 21 }
+
+/** Bonnet change: "large bore shear bonnets", "add tandem boosters to the lower cavity", "standard bonnets". */
+function bonnetChange(config: BopConfig, t: string): AssistantReply | null {
+  const type = bonnetTypeFrom(t)
+  if (!type) return null
+  const asksChange = /\b(use|add|fit|install|put|switch|change|set|make|give|want|with|remove|without|swap)\b/.test(t) || /^(large|lb|shear|tandem|standard|boosters?)\b/.test(t)
+  if (!asksChange) return null
+  const loc = parseLocation(t)
+  const shearCavity = activeCavities(config).find((c) => isShear(config.rams[c]))
+  const cavity: CavityId = loc.cavities?.[0] ?? shearCavity ?? 'upper'
+  if (cavity === 'lower' && config.stack === 'single') return reply('A single BOP has only one ram cavity. Say "double BOP" first to get a lower cavity.', [], ['double BOP'])
+  const next: BopConfig = { ...config, bonnets: { ...config.bonnets, [cavity]: type } }
+  const where = config.stack === 'double' ? `${cavity} cavity` : 'ram cavity'
+  const why = !loc.cavities && shearCavity === cavity && config.stack === 'double' ? ' (the cavity with the shear rams)' : ''
+  return reply(
+    `The ${where}${why} now has ${BONNET_TYPE_LABEL[type].toLowerCase()}. Part numbers come from catalog p.${BONNET_PAGE[type]}.`,
+    [{ type: 'setConfig', config: next }, { type: 'focusCamera', id: `bonnet-${cavity}-L` }],
+    type === 'tandemBooster' ? ['show the tandem booster cylinder', 'explode the left bonnet'] : type === 'largeBoreShear' ? ['show the operating piston', 'explode the left bonnet'] : ['explode the left bonnet'],
+  )
+}
 
 export const configuration: Intent = ({ ds, t }) => {
   const config = ds.config
@@ -108,16 +167,23 @@ export const configuration: Intent = ({ ds, t }) => {
   if (/\bdouble( bop| stack| preventer)?\b/.test(t) && /\b(double|make|switch|change|set|use)\b/.test(t) && !/\bram\b/.test(t)) {
     return reply('Switched to a double BOP (upper and lower ram cavities).', [{ type: 'setConfig', config: { ...config, stack: 'double' } }, { type: 'focusCamera', id: 'bop' }])
   }
+  const bonnet = bonnetChange(config, t)
+  if (bonnet) return bonnet
   if (!/\brams?\b/.test(t) || !/\b(set|change|use|make|switch|install|fit|put|upper|lower|to)\b/.test(t)) return null
   const kind = ramKindFrom(t)
   if (kind === null) return null
   if (kind === 'unknown-size') {
     return reply(`That pipe size is not in the catalog table for this BOP (p.43). Available sizes: ${SELECTABLE_PIPE_SIZES.join(', ')} in.`, [], ['upper rams 5 inch pipe', 'upper rams blind'])
   }
+  if (kind === 'no-range') {
+    const ranges = [...VBR_ROWS.map((r) => `VBR-II ${r.range}`), ...FLEXPACKER_NR_ROWS.map((r) => `FLEXPACKER-NR ${r.range}`)]
+    return reply(`No variable-bore range in the catalog for this BOP covers that pipe size (p.54, p.55). Documented ranges: ${ranges.join('; ')}.`, [], ['upper rams VBR', 'upper rams flexpacker'])
+  }
   const loc = parseLocation(t)
   const cavity: CavityId = loc.cavities?.[0] ?? 'upper'
   if (cavity === 'lower' && config.stack === 'single') return reply('A single BOP has only one ram cavity. Say "double BOP" first to get a lower cavity.', [], ['double BOP'])
   const next: BopConfig = { ...config, rams: { ...config.rams, [cavity]: kind } }
   const where = config.stack === 'double' ? `${cavity} cavity` : 'ram cavity'
-  return reply(`The ${where} now has ${kindLabel(kind)}. Part numbers update from the catalog (${kind.type === 'sbr' ? 'p.48' : 'p.43'}).`, [{ type: 'setConfig', config: next }, { type: 'focusCamera', id: `ram-${cavity}-L` }], ['show the ram packer', 'close the rams'])
+  const follow = isShear(kind) ? ['show the side packers', 'close the rams'] : ['show the ram packer', 'close the rams']
+  return reply(`The ${where} now has ${ramKindLabel(kind)}. Part numbers update from the catalog (p.${RAM_PAGE[kind.type]}).`, [{ type: 'setConfig', config: next }, { type: 'focusCamera', id: `ram-${cavity}-L` }], follow)
 }

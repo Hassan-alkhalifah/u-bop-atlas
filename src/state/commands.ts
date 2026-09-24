@@ -5,8 +5,10 @@ import { buildBop, type BopDataset } from '../data/build-bop'
 import { SYSTEM_IDS } from '../data/systems'
 import type { BopConfig, CavityId, SystemId } from '../data/types'
 import { startAnimation, stopAnimation } from './animation-player'
+import type { QuizMode } from '../learn/quiz'
+import type { CameraPose } from '../viewer/camera-bridge'
 import type { PaintId } from '../viewer/paints'
-import { initialState, useViewer } from './store'
+import { initialState, useViewer, type DialogId } from './store'
 
 export type Command =
   | { type: 'selectComponent'; id: string | null }
@@ -19,6 +21,7 @@ export type Command =
   | { type: 'explodeAssembly'; assemblyId: string; amount: number }
   | { type: 'setExplode'; amount: number }
   | { type: 'focusCamera'; id: string }
+  | { type: 'setCamera'; pose: CameraPose }
   | { type: 'showSystems'; systemIds: SystemId[] }
   | { type: 'showConnections'; id: string | null }
   | { type: 'playAnimation'; id: string }
@@ -28,6 +31,8 @@ export type Command =
   | { type: 'highlight'; ids: string[] }
   | { type: 'setConfig'; config: BopConfig }
   | { type: 'resetView' }
+  | { type: 'openLearn'; lessonId?: string; quiz?: QuizMode }
+  | { type: 'openDialog'; dialog: DialogId }
 
 export interface CommandResult {
   ok: boolean
@@ -81,7 +86,8 @@ export function dispatch(cmd: Command): CommandResult {
   switch (cmd.type) {
     case 'selectComponent': {
       if (cmd.id !== null && !ds.byId.has(cmd.id)) return { ok: false, message: `No component with id ${cmd.id}.` }
-      set({ selectedId: cmd.id, panelTab: cmd.id ? 'details' : s.panelTab })
+      // During a lesson or quiz the Learn tab stays in front.
+      set({ selectedId: cmd.id, panelTab: cmd.id && s.panelTab !== 'learn' ? 'details' : s.panelTab })
       return { ok: true, message: cmd.id ? `Selected ${ds.byId.get(cmd.id)?.name}.` : 'Selection cleared.' }
     }
     case 'isolateComponents': {
@@ -123,6 +129,12 @@ export function dispatch(cmd: Command): CommandResult {
       if (!ds.byId.has(cmd.id) && !ds.assemblies.some((a) => a.id === cmd.id)) return { ok: false, message: `Nothing to focus with id ${cmd.id}.` }
       set({ focusRequest: { id: cmd.id, nonce: Date.now() } })
       return { ok: true, message: 'Camera focused.' }
+    }
+    case 'setCamera': {
+      const finite = [...cmd.pose.position, ...cmd.pose.target].every((n) => Number.isFinite(n) && Math.abs(n) < 5000)
+      if (!finite) return { ok: false, message: 'Invalid camera pose.' }
+      set({ cameraRequest: { pose: cmd.pose, nonce: Date.now() } })
+      return { ok: true, message: 'Camera moved.' }
     }
     case 'showSystems': {
       const valid = cmd.systemIds.filter((id) => SYSTEM_IDS.includes(id))
@@ -172,9 +184,15 @@ export function dispatch(cmd: Command): CommandResult {
     case 'resetView': {
       stopAnimation()
       const fresh = initialState(s.dataset.config)
-      set({ ...fresh, dataset: s.dataset, panelTab: s.panelTab, paint: s.paint, quality: s.quality, focusRequest: { id: 'bop', nonce: Date.now() } })
+      set({ ...fresh, dataset: s.dataset, panelTab: s.panelTab, mobileSheet: s.mobileSheet, paint: s.paint, quality: s.quality, focusRequest: { id: 'bop', nonce: Date.now() } })
       return { ok: true, message: 'View reset.' }
     }
+    case 'openLearn':
+      set({ panelTab: 'learn', mobileSheet: 'panel', learnRequest: { lessonId: cmd.lessonId, quiz: cmd.quiz, nonce: Date.now() } })
+      return { ok: true, message: 'Learn panel opened.' }
+    case 'openDialog':
+      set({ dialog: cmd.dialog })
+      return { ok: true, message: `Opened ${cmd.dialog}.` }
   }
 }
 

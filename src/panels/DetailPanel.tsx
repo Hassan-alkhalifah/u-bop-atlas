@@ -5,7 +5,7 @@ import type { ComponentInstance } from '../data/types'
 import { PARAMS } from '../geometry/params'
 import { dispatch } from '../state/commands'
 import { useViewer } from '../state/store'
-import { Balloon, ClaimView, ConfidenceBadge, Icon } from './ui'
+import { Balloon, balloonText, ClaimView, ConfidenceBadge, Icon } from './ui'
 
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -26,7 +26,7 @@ function Connections({ c }: { c: ComponentInstance }) {
         const other = ds.byId.get(k.from === c.id ? k.to : k.from)!
         return (
           <li key={k.id} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-            <Balloon n={other.catalogItem} size="sm" />
+            <Balloon n={balloonText(other)} size="sm" />
             <div style={{ minWidth: 0 }}>
               <button type="button" onClick={() => dispatch({ type: 'selectComponent', id: other.id })} style={{ border: 0, background: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', fontWeight: 550 }}>
                 {other.name}
@@ -92,7 +92,7 @@ export function DetailPanel() {
   return (
     <div className="scroll" style={{ padding: '16px 18px 28px' }}>
       <header style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 10 }}>
-        <Balloon n={c.catalogItem} size="lg" />
+        <Balloon n={balloonText(c)} size="lg" />
         <div style={{ minWidth: 0, flex: 1 }}>
           <h2 className="heading" style={{ fontSize: 21, lineHeight: 1.15, margin: 0 }}>{c.name}</h2>
           <div className="muted" style={{ fontSize: 13, textTransform: 'capitalize' }}>{loc}</div>

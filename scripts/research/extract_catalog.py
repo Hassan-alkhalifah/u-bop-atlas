@@ -75,6 +75,49 @@ def header_rows(page_no, n):
     return [{"page": page_no, "cells": c} for c in table_rows(page_no)[:n]]
 
 
+def rows_in_titled_table(page_no, title, pattern):
+    """Rows matching pattern in the table whose title row contains `title` (splits stacked tables)."""
+    rx = re.compile(pattern)
+    out = []
+    for table in DOC[page_no - 1].find_tables().tables:
+        rows = [[clean(c) for c in row] for row in table.extract()]
+        if not rows or title not in rows[0][0]:
+            continue
+        out += [{"page": page_no, "cells": c} for c in rows[1:] if any(rx.search(x) for x in c)]
+    if not out:
+        sys.exit(f"No rows for table '{title}' on p.{page_no}")
+    return out
+
+
+def rows_after_title_row(page_no, title, pattern):
+    """Rows matching pattern after a title row inside one table (p.7 stacks two tables in one grid)."""
+    rows = table_rows(page_no)
+    start = next((i for i, c in enumerate(rows) if c[0].startswith(title)), None)
+    if start is None:
+        sys.exit(f"Title row not found on p.{page_no}: {title}")
+    rx = re.compile(pattern)
+    return [{"page": page_no, "cells": c} for c in rows[start + 1:] if rx.search(c[0])]
+
+
+def isr_lower_rows():
+    """p.52 lower-ram ISR table. find_tables misses its bore-size column, so the label is read from the
+    text to the left of each row and prepended as the first cell."""
+    page = DOC[51]
+    out = []
+    for table in page.find_tables().tables:
+        header = " ".join(clean(c) for row in table.extract()[:4] for c in row)
+        if "Lower Ram" not in header:
+            continue
+        for row, cells in zip(table.rows, table.extract()):
+            cells = [clean(c) for c in cells]
+            if not re.match(r"^\d{6,7}-", cells[0]):
+                continue
+            left = fitz.Rect(page.rect.x0, row.bbox[1], row.bbox[0], row.bbox[3])
+            label = clean(page.get_textbox(left))
+            out.append({"page": 52, "cells": [label, *cells]})
+    return [r for r in out if r["cells"][0].startswith("13-5/8")]
+
+
 def main():
     if not PDF.exists():
         sys.exit(f"Missing source PDF: {PDF}")
@@ -84,6 +127,7 @@ def main():
         "scope": '13-5/8" 10,000 psi WP U BOP (Model II column where the catalog distinguishes models)',
         "bonnetAndBodyParts": bonnet_parts(),
         "operatingData": header_rows(7, 3) + rows_matching(7, r"^13-5/8\" Except"),
+        "largeBoreOperatingData": rows_after_title_row(7, "Large Bore Shear Bonnet Operating Data", r"^13-5/8\" Except"),
         "bonnetRebuildKits": rows_matching(16, r"^13-5/8"),
         "liftingPlates": rows_matching(17, r"^13-5/8"),
         "largeBoreShearBonnet": header_rows(18, 30),
@@ -95,7 +139,10 @@ def main():
         "h2sShearingBlindRams": rows_matching(49, r"13-5/8\" 5,000|BOP Bore|Pressure"),
         "severeServiceH2sShearRams": rows_matching(50, r"13-5/8\" 5,000"),
         "isrShearRams": rows_matching(52, r"^13-5/8"),
+        "isrShearRamsLower": isr_lower_rows(),
         "variableBoreRams": rows_matching(54, r"^13-5/8\" 3,000|BOP Size"),
+        "variableBoreRamsHighTemp": rows_in_titled_table(54, "Extended Range High Temperature", r"^13-5/8"),
+        "flexpackerNr": rows_in_titled_table(55, "FLEXPACKER-NR Sizes", r"^13-5/8"),
         "flexpackers": rows_matching(55, r"^13-5/8"),
         "wearPadsAndCamlastSeals": rows_matching(59, r"^13-5/8|Size|Bore Size"),
         "bonnetSealCarriers": rows_matching(60, r"13-5/8|Type"),

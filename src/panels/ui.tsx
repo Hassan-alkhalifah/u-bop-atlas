@@ -2,8 +2,14 @@ import type { ReactNode } from 'react'
 import { NOT_AVAILABLE, SOURCES } from '../data/sources'
 import type { Claim, Confidence, SourceRef } from '../data/types'
 
-export function Balloon({ n, size }: { n?: number; size?: 'sm' | 'lg' }) {
-  const cls = `balloon ${size ? `balloon-${size}` : ''} ${n === undefined ? 'balloon-empty' : ''}`
+/** Balloon text for a part: its SD17500 item number, or a label such as "3A" (p.18) or "TB3" (p.21). */
+export function balloonText(c: { catalogItem?: number; itemLabel?: string }): string | number | undefined {
+  return c.itemLabel ?? c.catalogItem
+}
+
+export function Balloon({ n, size }: { n?: number | string; size?: 'sm' | 'lg' }) {
+  const wide = n !== undefined && String(n).length > 2
+  const cls = `balloon ${size ? `balloon-${size}` : ''} ${n === undefined ? 'balloon-empty' : ''} ${wide ? 'balloon-wide' : ''}`
   return (
     <span className={cls} aria-label={n === undefined ? 'No catalog item number' : `Catalog item ${n}`}>
       {n ?? ''}
@@ -73,7 +79,7 @@ export function ClaimView({ claim, mono, render }: { claim: Claim<string> | null
   )
 }
 
-type IconName = 'eye' | 'eyeOff' | 'focus' | 'chevron' | 'play' | 'stop' | 'reset' | 'send' | 'isolate' | 'link' | 'explode' | 'close'
+type IconName = 'eye' | 'eyeOff' | 'focus' | 'chevron' | 'play' | 'stop' | 'reset' | 'send' | 'isolate' | 'link' | 'explode' | 'close' | 'download' | 'print' | 'book' | 'check' | 'target'
 
 const PATHS: Record<IconName, ReactNode> = {
   eye: <><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></>,
@@ -88,6 +94,11 @@ const PATHS: Record<IconName, ReactNode> = {
   link: <><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" /><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" /></>,
   explode: <><path d="M12 2v6M12 16v6M2 12h6M16 12h6" /><rect x="9" y="9" width="6" height="6" /></>,
   close: <path d="M6 6l12 12M18 6L6 18" />,
+  download: <><path d="M12 4v11" /><path d="M7 10l5 5 5-5" /><path d="M4 19h16" /></>,
+  print: <><path d="M7 9V3h10v6" /><rect x="3" y="9" width="18" height="8" rx="1" /><path d="M7 14h10v7H7z" /></>,
+  book: <><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5Z" /><path d="M4 19a2 2 0 0 1 2-2h13" /></>,
+  check: <path d="M5 12l5 5 9-10" />,
+  target: <><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="3" /></>,
 }
 
 export function Icon({ name, size = 16, rotate }: { name: IconName; size?: number; rotate?: number }) {

@@ -120,19 +120,120 @@ export const SBR: { upper: SbrHalf; lower: SbrHalf } = (() => {
   }
 })()
 
+const isrUpper = (raw.isrShearRams as RawRow[]).map((r) => r.cells).find((c) => c[0].startsWith('13-5/8'))
+const isrLower = (raw.isrShearRamsLower as RawRow[]).map((r) => r.cells).find((c) => c[0].startsWith('13-5/8'))
+
+export interface IsrHalf {
+  subassembly: string
+  body: string
+  sidePackers: [string, string]
+  topSeal: string
+  bladeSeals: [string, string] | null
+}
+
+/** Catalog p.52: ISR shearing blind ram, upper ram (items 2-7) and lower ram (items 9-12). */
+export const ISR: { upper: IsrHalf; lower: IsrHalf } = (() => {
+  if (!isrUpper || !isrLower) throw new Error('ISR rows missing')
+  return {
+    upper: { subassembly: isrUpper[1], body: isrUpper[2], sidePackers: [isrUpper[3], isrUpper[4]], topSeal: isrUpper[5], bladeSeals: [isrUpper[6], isrUpper[7]] },
+    lower: { subassembly: isrLower[1], body: isrLower[2], sidePackers: [isrLower[3], isrLower[4]], topSeal: isrLower[5], bladeSeals: null },
+  }
+})()
+
+/** Parses a catalog pipe size such as 4-1/2" or 7" to inches. */
+export function parseInches(text: string): number {
+  const m = text.replace(/"/g, '').trim().match(/^(\d+)(?:-(\d+)\/(\d+))?$/)
+  if (!m) throw new Error(`Unreadable pipe size: ${text}`)
+  return Number(m[1]) + (m[2] ? Number(m[2]) / Number(m[3]) : 0)
+}
+
+function sizeRange(text: string): { min: number; max: number } {
+  const [a, b] = text.split(/\s+(?:to|x)\s+/).map(parseInches)
+  if (a === undefined || b === undefined) throw new Error(`Unreadable pipe size range: ${text}`)
+  return { min: Math.min(a, b), max: Math.max(a, b) }
+}
+
+export interface VbrRow {
+  id: string
+  range: string
+  min: number
+  max: number
+  highTemp: boolean
+  subassembly: string
+  body: string
+  packer: string
+  topSeal: string
+}
+
+function toVbrRow(c: string[], highTemp: boolean): VbrRow {
+  const { min, max } = sizeRange(c[1])
+  return { id: `${highTemp ? 'ht' : 'v'}${min}-${max}`, range: c[1], min, max, highTemp, subassembly: c[2], body: c[3], packer: c[4], topSeal: c[5] }
+}
+
+/** Catalog p.54: 13-5/8" 3,000-10,000 psi VBR-II rows, then the extended range high temperature VBR-II. */
+export const VBR_ROWS: VbrRow[] = [
+  ...(raw.variableBoreRams as RawRow[]).map((r) => r.cells).filter((c) => c[0].startsWith('13-5/8') && c[0].includes('VBR-II')).map((c) => toVbrRow(c, false)),
+  ...(raw.variableBoreRamsHighTemp as RawRow[]).map((r) => toVbrRow(r.cells, true)),
+]
+
+export function vbrRow(id: string): VbrRow {
+  const row = VBR_ROWS.find((r) => r.id === id)
+  if (!row) throw new Error(`No VBR row ${id}`)
+  return row
+}
+
+export interface FlexpackerRow {
+  id: string
+  range: string
+  min: number
+  max: number
+  packer: string
+}
+
+/** Catalog p.55: FLEXPACKER-NR packers for the 13-5/8" 3,000-10,000 psi BOP. */
+export const FLEXPACKER_NR_ROWS: FlexpackerRow[] = (raw.flexpackerNr as RawRow[]).map((r) => {
+  const { min, max } = sizeRange(r.cells[1])
+  return { id: `f${min}-${max}`, range: r.cells[1], min, max, packer: r.cells[2] }
+})
+
+export function flexpackerRow(id: string): FlexpackerRow {
+  const row = FLEXPACKER_NR_ROWS.find((r) => r.id === id)
+  if (!row) throw new Error(`No FLEXPACKER-NR row ${id}`)
+  return row
+}
+
+/** p.55 FLEXPACKER table: the 13-5/8" row (packer marked * = FLEXPACKER-NR) prints its top seal. */
+export const FLEXPACKER_TOP_SEAL: { packer: string; topSeal: string } | null = (() => {
+  const c = (raw.flexpackers as RawRow[]).map((r) => r.cells).find((x) => x[0] === '13-5/8"' && x.length >= 4)
+  return c ? { packer: c[2].replace(/^\*/, ''), topSeal: c[3] } : null
+})()
+
 // ---------- Operating data (p.7) ----------
 
 const opRow = (raw.operatingData as RawRow[]).map((r) => r.cells).find((c) => c[0].startsWith('13-5/8" Except'))
 if (!opRow) throw new Error('Operating data row missing')
 const opValues = opRow.filter((x) => x !== '')
 
-export const OPERATING_DATA = {
-  galsToOpen: opValues[1],
-  galsToClose: opValues[2],
-  lockingScrewTurns: opValues[3],
-  closingRatio: opValues[4],
-  openingRatio: opValues[5],
+export interface OperatingData {
+  galsToOpen: string
+  galsToClose: string
+  lockingScrewTurns: string
+  closingRatio: string
+  openingRatio: string
 }
+
+function operatingData(values: string[]): OperatingData {
+  return { galsToOpen: values[1], galsToClose: values[2], lockingScrewTurns: values[3], closingRatio: values[4], openingRatio: values[5] }
+}
+
+export const OPERATING_DATA = operatingData(opValues)
+
+/** p.7 "Large Bore Shear Bonnet Operating Data and Fluid Requirements", 13-5/8" except 15,000 psi. */
+export const LB_OPERATING_DATA: OperatingData = (() => {
+  const row = (raw.largeBoreOperatingData as RawRow[])[0]?.cells.filter((x) => x !== '')
+  if (!row) throw new Error('Large bore operating data row missing')
+  return operatingData(row)
+})()
 
 // ---------- Options and accessories ----------
 
@@ -148,12 +249,44 @@ export const CAMLAST = rowsOf('wearPadsAndCamlastSeals').find((c) => c[1]?.start
 export const ACCESSORIES_10K = rowsOf('standardAccessories')[0] ?? null
 export const TANDEM_BOOSTER_ASSEMBLY = rowsOf('tandemBoosterComposite').find((c) => c[1] === 'Tandem Booster Assembly')?.[3] ?? null
 
-export const LB_SHEAR_BONNET_10K = (() => {
+export interface LbShearRow {
+  item: string
+  description: string
+  partNumber: string
+}
+
+/** p.18 large-bore shear bonnet, 13-5/8" 10,000 psi column: assemblies (item "*") and items 2A-42A. */
+export const LB_SHEAR_BONNET_10K: LbShearRow[] = (() => {
   const rows = rowsOf('largeBoreShearBonnet')
   const headerIdx = rows.findIndex((c) => c[2] === '10,000 psi' && c[1] === '(2 Required per Cavity)')
   if (headerIdx < 0) return []
-  return rows.slice(headerIdx + 2).map((c) => ({ item: c[0], description: c[1], partNumber: c[2] }))
+  return rows.slice(headerIdx + 2).map((c) => ({ item: c[0].replace(/\s+/g, ''), description: c[1], partNumber: c[2] }))
 })()
+
+export function lbShearItem(item: string): LbShearRow {
+  const row = LB_SHEAR_BONNET_10K.find((r) => r.item === item)
+  if (!row) throw new Error(`Large-bore shear bonnet item ${item} missing`)
+  return row
+}
+
+export const LB_SHEAR_ASSEMBLIES = {
+  right: LB_SHEAR_BONNET_10K.find((r) => r.description === 'Bonnet Assembly (Right)')?.partNumber ?? null,
+  left: LB_SHEAR_BONNET_10K.find((r) => r.description === 'Bonnet Assembly (Left)')?.partNumber ?? null,
+}
+
+export interface TandemBoosterItem {
+  item: number
+  description: string
+  qtyPerAssembly: string
+  partNumber: string | null
+}
+
+/** p.21 "Tandem Boosters For Composite U BOP's", column 13-5/8" 3,000, 5,000 & 10,000 psi. */
+export const TANDEM_BOOSTER_ITEMS: TandemBoosterItem[] = rowsOf('tandemBoosterComposite')
+  .filter((c) => /^\d+$/.test(c[0]))
+  .map((c) => ({ item: Number(c[0]), description: c[1], qtyPerAssembly: c[2], partNumber: isPn(c[3]) ? c[3] : null }))
+
+export const TANDEM_BOOSTER_REPAIR_KIT = rowsOf('tandemBoosterComposite').find((c) => c[1] === 'Repair Kits')?.[3] ?? null
 
 /** Every part-number string present in the extracted data; used to verify nothing was typed by hand. */
 export function allExtractedStrings(): Set<string> {

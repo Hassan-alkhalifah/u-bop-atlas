@@ -3,7 +3,7 @@ import { locationLabel } from '../data/build-bonnet'
 import { searchComponents } from '../data/search'
 import { dispatch } from '../state/commands'
 import { useViewer } from '../state/store'
-import { Balloon } from './ui'
+import { Balloon, balloonText } from './ui'
 
 export function SearchBar() {
   const ds = useViewer((s) => s.dataset)
@@ -22,7 +22,7 @@ export function SearchBar() {
   }
 
   return (
-    <div style={{ position: 'relative', flex: '1 1 260px', maxWidth: 520 }}>
+    <div className="search-wrap" style={{ position: 'relative', flex: '1 1 260px', maxWidth: 520 }}>
       <input
         className="field"
         style={{ width: '100%', height: 36 }}
@@ -54,7 +54,7 @@ export function SearchBar() {
             const c = h.component
             return (
               <button key={c.id} type="button" role="option" aria-selected={i === active} className="search-hit" onMouseDown={(e) => e.preventDefault()} onClick={() => choose(c.id)}>
-                <Balloon n={c.catalogItem} size="sm" />
+                <Balloon n={balloonText(c)} size="sm" />
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ display: 'block', fontWeight: 550 }}>{c.name}</span>
                   <span className="muted" style={{ fontSize: 12, textTransform: 'capitalize' }}>{c.cavity && c.side ? locationLabel(c.cavity, c.side, ds.config.stack) : 'body'}</span>

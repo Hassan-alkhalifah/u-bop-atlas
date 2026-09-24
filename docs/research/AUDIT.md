@@ -379,3 +379,17 @@ Source "CAT p.12/9" means SRC-CAM-CAT-2014, parts list p.12, drawing p.9.
 ## Build status (2026-09-23)
 
 Phases 1 to 6 of the roadmap are implemented in this repository (see `README.md`). Defaults chosen for the three open decisions: a double BOP with 5" pipe rams upper and shearing blind rams lower (switchable in the UI); public-safe handling (no logos, a not-affiliated notice, source PDFs never deployed); geometry at tier T3 until better sources exist. Phase 7 (legitimate OEM manual, SME review, measured geometry) remains open.
+
+## Options added (2026-09-24)
+
+The catalog also documents optional rams and bonnets for the 13-5/8" 3,000-10,000 psi BOP. They are now selectable per cavity. `scripts/research/extract_catalog.py` extracts them into new keys of `data/extracted/cameron-catalog-13-5-8-10k.json`; existing keys are unchanged.
+
+| Option | Pages | Extracted key | What is documented | What is inferred or missing |
+|---|---|---|---|---|
+| ISR shearing blind ram | p.52 | `isrShearRams`, `isrShearRamsLower` | Upper ram (items 2-7) and lower ram (items 9-12) part numbers; "V" shape; shears pipe up to 6-5/8" O.D.; footnote "Should be with wear pads" | The lower-ram table loses its bore-size column in `find_tables`; the label is read from the text left of the row (verified against the rendered page). Which bonnet side takes the upper ram is not stated. |
+| VBR-II variable bore rams | p.54 | `variableBoreRams`, `variableBoreRamsHighTemp` | Four 13-5/8" ranges plus the extended range high temperature VBR-II: subassembly, body, packer, top seal | Packer insert shape and material (the model draws illustrative inserts). |
+| FLEXPACKER-NR | p.55 | `flexpackerNr` | Three packer part numbers; "designed to fit standard fixed bore Cameron pipe rams" | Ram body part number is not stated. The top seal is printed only for the 2-3/8" x 3-1/2" packer; for the other two ranges the standard p.43 pipe-ram top seal is shown with confidence D (inferred). |
+| Large-bore shear bonnet | p.18, p.19, p.7 | `largeBoreShearBonnet`, `largeBoreShearBonnetKits`, `largeBoreOperatingData` | Right/left assembly part numbers; items 2A, 3A, 5A, 24A, 26A, 42A; kit 644860-07 (one per bonnet); fluid, lock turns and ratios (10.8:1 closing) | Items 2A, 3A, 5A, 26A and 42A are treated as replacing standard items 2, 3, 5, 26 and 42 because their names match with "/Shear"; 24A is added as a separate O-ring. Other parts keep their p.12 numbers; whether they are shared is not stated. Cylinder size in the model is scaled from the closing ratios (T3). |
+| Tandem booster (composite style) | p.20, p.21 | `tandemBoosterComposite` | 26 items with quantities per assembly (one assembly = two boosters), assembly 2010886-01, repair kit 2164148-02; the lock mounts on the outside end of the booster | Seal seats, plumbing routes and all sizes; items 17-26 have no geometry. Kit contents are not listed. |
+
+Other additions: share links (`src/state/share.ts`), parts-list export to Excel and print (`src/export/`), guided lessons and a quiz (`src/learn/`). Lessons carry no facts of their own; every fact is looked up from the sourced dataset, and a test fails if a fact does not resolve or a step text contains a number.

@@ -3,7 +3,7 @@
 // section on p.6: stepped bonnet with the bolt heads on the step, octagonal intermediate flange pierced by
 // the two ram-change cylinders, round-flanged locking-screw housing held by short studs (item 13) and nuts
 // (item 14), square-drive locking screw. None of these drawings carry dimensions, so sizes are approximations.
-import type { Kinematic, MeshSpec } from '../data/types'
+import type { BonnetType, Kinematic, MeshSpec, Outline } from '../data/types'
 import { alongS, boxS, cylS, ellipsePoints, hexHeadS, hexS, latheS, plateS, ringS, rodS, threadS, worldX, type BonnetFrame } from './frame'
 import { P, S } from './params'
 
@@ -17,23 +17,51 @@ export interface PartGeometry {
 
 // Bonnet: flange section at the body face, then a narrower body section.
 const FLANGE_LEN = 4
-const BONNET_FLANGE = { type: 'roundRect' as const, w: 24, h: 21, r: 3 }
-// The body section is lower than the flange so the bonnet bolt heads sit on the step (as drawn on p.9).
-const BONNET_BODY = { type: 'roundRect' as const, w: 21, h: 15, r: 3 }
-const INT_FLANGE = { type: 'octagon' as const, w: 23, h: 19, chamfer: 4.5 }
-
-const RC_Z = 8.4
 const RC_R = P.rcCylinderRadius - 0.2
 const RC_HEAD_S = S.cylEnd - 1
 const RC_ROD_R = 0.8
 const RC_END = S.housingEnd - 2.5
-const COLLAR_R = 8.2
-const STUD_R = 7.2
+
+/**
+ * Radial sizes that differ between bonnet types, plus the outward shift of the lock housing.
+ * The large-bore shear bonnet (p.18) has a larger operating piston (closing ratio 10.8:1 vs 7.0:1, p.7), so the
+ * cylinder, piston and everything arranged around them grow by the same amount. A tandem booster (p.21) sits
+ * between the operating cylinder and the lock housing, which moves outward by the booster length (p.20).
+ */
+export interface BonnetDims {
+  cylR: number
+  pistonR: number
+  collarR: number
+  studR: number
+  rcZ: number
+  flange: Extract<Outline, { type: 'roundRect' }>
+  body: Extract<Outline, { type: 'roundRect' }>
+  intFlange: Extract<Outline, { type: 'octagon' }>
+  /** Outward shift of the lock housing, locking screw, housing studs and nuts and tail-rod seals. */
+  lockShift: number
+}
+
+export function bonnetDims(type: BonnetType): BonnetDims {
+  const grow = type === 'largeBoreShear' ? P.lbCylinderRadius - P.opCylinderRadius : 0
+  return {
+    cylR: P.opCylinderRadius + grow,
+    pistonR: 6.1 + grow,
+    collarR: 8.2 + grow,
+    studR: 7.2 + grow,
+    rcZ: 8.4 + grow,
+    flange: { type: 'roundRect', w: 24 + 2 * grow, h: 21, r: 3 },
+    // The body section is lower than the flange so the bonnet bolt heads sit on the step (as drawn on p.9).
+    body: { type: 'roundRect', w: 21 + 2 * grow, h: 15, r: 3 },
+    intFlange: { type: 'octagon', w: 23 + 2 * grow, h: 19, chamfer: 4.5 },
+    lockShift: type === 'tandemBooster' ? P.boosterLength : 0,
+  }
+}
+
+export const STANDARD_DIMS = bonnetDims('standard')
 
 // Bolt shanks must stay inside the cavity housing (half-height 10) and the heads on the bonnet step.
 const BOLT_Y = 9
 const BOLT_POS: [number, number][] = [[BOLT_Y, 8.2], [BOLT_Y, -8.2], [-BOLT_Y, 8.2], [-BOLT_Y, -8.2]]
-const STUD_POS = ellipsePoints(8, STUD_R, STUD_R, Math.PI / 8)
 const CAP_POS: [number, number][] = [20, 48, 76, 104, 132, 160].flatMap((deg) => {
   const a = (deg * Math.PI) / 180
   return [
@@ -46,11 +74,10 @@ function atY(f: BonnetFrame, s: number, y: number, z: number, shape: MeshSpec['s
   return { shape, position: [worldX(f, s), f.cavityY + y, z], axis: 'y', material }
 }
 
-function pistonProfile(): [number, number][] {
+function pistonProfile(r: number): [number, number][] {
   const a = S.ramBack
   const face = S.pistonFace
   const back = S.pistonBack
-  const r = 6.1
   return [
     [0, a], [P.rodRadius - 0.2, a], [P.rodRadius, a + 0.2],
     [P.rodRadius, face - 0.4], [P.rodRadius + 0.5, face],
@@ -61,34 +88,41 @@ function pistonProfile(): [number, number][] {
   ]
 }
 
-export function bonnetItemGeometry(item: number, f: BonnetFrame, withLiftingEye: boolean): PartGeometry | null {
-  const rcZ = [RC_Z, -RC_Z]
-  const topBody = BONNET_BODY.h / 2
+export function bonnetItemGeometry(item: number, f: BonnetFrame, withLiftingEye: boolean, d: BonnetDims = STANDARD_DIMS): PartGeometry | null {
+  const rcZ = [d.rcZ, -d.rcZ]
+  const topBody = d.body.h / 2
+  const studPos = ellipsePoints(8, d.studR, d.studR, Math.PI / 8)
+  // Lock housing stations; with a tandem booster the standard lock sits on the outside end of the booster (p.20).
+  const lockAt = S.cylEnd + d.lockShift
+  const housingEnd = S.housingEnd + d.lockShift
+  const tailEnd = S.tailEnd + d.lockShift
+  const screwEnd = S.screwEnd + d.lockShift
+  const lockStudPos = d.lockShift ? ellipsePoints(8, STANDARD_DIMS.studR, STANDARD_DIMS.studR, Math.PI / 8) : studPos
   switch (item) {
     case 2:
       return {
-        meshes: [plateS(f, INT_FLANGE, S.bonnetEnd, P.intFlangeLength, 'structureAlt', [{ x: 0, y: 0, r: P.rodRadius + 0.3 }, { x: RC_Z, y: 0, r: RC_R + 0.05 }, { x: -RC_Z, y: 0, r: RC_R + 0.05 }], 0, 0.45)],
+        meshes: [plateS(f, d.intFlange, S.bonnetEnd, P.intFlangeLength, 'structureAlt', [{ x: 0, y: 0, r: P.rodRadius + 0.3 }, { x: d.rcZ, y: 0, r: RC_R + 0.05 }, { x: -d.rcZ, y: 0, r: RC_R + 0.05 }], 0, 0.45)],
         kinematic: 'bonnet',
         explode: [16, 0, 0],
       }
     case 3:
       return {
         meshes: [
-          plateS(f, BONNET_FLANGE, 0, FLANGE_LEN, 'structure', [], 0, 0.6),
-          plateS(f, BONNET_BODY, FLANGE_LEN - 0.3, S.bonnetEnd - FLANGE_LEN + 0.3, 'structure', [], 0, 0.6),
+          plateS(f, d.flange, 0, FLANGE_LEN, 'structure', [], 0, 0.6),
+          plateS(f, d.body, FLANGE_LEN - 0.3, S.bonnetEnd - FLANGE_LEN + 0.3, 'structure', [], 0, 0.6),
         ],
         kinematic: 'bonnet',
         explode: [8, 0, 0],
       }
     case 5:
-      return { meshes: [latheS(f, pistonProfile(), 'moving')], kinematic: 'ram', explode: [22, 16, 0] }
+      return { meshes: [latheS(f, pistonProfile(d.pistonR), 'moving')], kinematic: 'ram', explode: [22, 16, 0] }
     case 6:
       return {
         meshes: [
           latheS(f, [
-            [6.0, S.intEnd], [6.85, S.intEnd], [6.85, S.intEnd + 0.7], [P.opCylinderRadius, S.intEnd + 0.9],
-            [P.opCylinderRadius, S.cylEnd - 1.6], [COLLAR_R - 0.2, S.cylEnd - 1.4], [COLLAR_R, S.cylEnd - 1.2],
-            [COLLAR_R, S.cylEnd], [6.0, S.cylEnd], [6.0, S.intEnd],
+            [d.pistonR - 0.1, S.intEnd], [d.cylR + 0.35, S.intEnd], [d.cylR + 0.35, S.intEnd + 0.7], [d.cylR, S.intEnd + 0.9],
+            [d.cylR, S.cylEnd - 1.6], [d.collarR - 0.2, S.cylEnd - 1.4], [d.collarR, S.cylEnd - 1.2],
+            [d.collarR, S.cylEnd], [d.pistonR - 0.1, S.cylEnd], [d.pistonR - 0.1, S.intEnd],
           ], 'structure'),
         ],
         kinematic: 'bonnet',
@@ -97,8 +131,8 @@ export function bonnetItemGeometry(item: number, f: BonnetFrame, withLiftingEye:
     case 7:
       return {
         meshes: [
-          plateS(f, { type: 'circle', r: COLLAR_R }, S.cylEnd, 1.5, 'structureAlt', [{ x: 0, y: 0, r: 1.7 }, ...STUD_POS.map(([y, z]) => ({ x: z, y, r: 0.5 }))], 0, 0.25),
-          latheS(f, [[1.7, S.cylEnd + 1.4], [4.6, S.cylEnd + 1.4], [4.6, S.cylEnd + 2.1], [4.2, S.cylEnd + 2.4], [4.2, S.housingEnd - 0.4], [3.8, S.housingEnd], [1.7, S.housingEnd], [1.7, S.cylEnd + 1.4]], 'structureAlt'),
+          plateS(f, { type: 'circle', r: d.lockShift ? STANDARD_DIMS.collarR : d.collarR }, lockAt, 1.5, 'structureAlt', [{ x: 0, y: 0, r: 1.7 }, ...lockStudPos.map(([y, z]) => ({ x: z, y, r: 0.5 }))], 0, 0.25),
+          latheS(f, [[1.7, lockAt + 1.4], [4.6, lockAt + 1.4], [4.6, lockAt + 2.1], [4.2, lockAt + 2.4], [4.2, housingEnd - 0.4], [3.8, housingEnd], [1.7, housingEnd], [1.7, lockAt + 1.4]], 'structureAlt'),
         ],
         kinematic: 'bonnet',
         explode: [40, 0, 0],
@@ -106,9 +140,9 @@ export function bonnetItemGeometry(item: number, f: BonnetFrame, withLiftingEye:
     case 8:
       return {
         meshes: [
-          threadS(f, 1.5, S.tailEnd, S.screwEnd - 2.2, 0.35, 'moving'),
-          rodS(f, 1.1, S.screwEnd - 2.3, S.screwEnd - 1.5, 'moving'),
-          boxS(f, 1.5, 1.35, 1.35, S.screwEnd - 1.5, 0, 0, 'moving'),
+          threadS(f, 1.5, tailEnd, screwEnd - 2.2, 0.35, 'moving'),
+          rodS(f, 1.1, screwEnd - 2.3, screwEnd - 1.5, 'moving'),
+          boxS(f, 1.5, 1.35, 1.35, screwEnd - 1.5, 0, 0, 'moving'),
         ],
         kinematic: 'lock',
         explode: [52, 0, 0],
@@ -116,7 +150,7 @@ export function bonnetItemGeometry(item: number, f: BonnetFrame, withLiftingEye:
       }
     case 9:
     case 10: {
-      const z = item === 9 ? RC_Z : -RC_Z
+      const z = item === 9 ? d.rcZ : -d.rcZ
       return {
         meshes: [
           rodS(f, RC_ROD_R, -4, RC_HEAD_S, 'moving', 0, z),
@@ -142,15 +176,15 @@ export function bonnetItemGeometry(item: number, f: BonnetFrame, withLiftingEye:
         explode: [12, 0, 0],
       }
     case 13:
-      return { meshes: STUD_POS.map(([y, z]) => threadS(f, 0.45, S.cylEnd - 1.3, S.cylEnd + 2.5, 0.18, 'fastener', y, z)), kinematic: 'bonnet', explode: [26, 0, 0] }
+      return { meshes: lockStudPos.map(([y, z]) => threadS(f, 0.45, lockAt - 1.3, lockAt + 2.5, 0.18, 'fastener', y, z)), kinematic: 'bonnet', explode: [26, 0, 0] }
     case 14:
-      return { meshes: STUD_POS.map(([y, z]) => hexS(f, 1.15, 0.8, S.cylEnd + 1.5, y, z)), kinematic: 'bonnet', explode: [44, 0, 0] }
+      return { meshes: lockStudPos.map(([y, z]) => hexS(f, 1.15, 0.8, lockAt + 1.5, y, z)), kinematic: 'bonnet', explode: [44, 0, 0] }
     case 15:
-      return { meshes: [atY(f, S.bonnetEnd + 1.5, INT_FLANGE.h / 2 + 0.4, -3, { kind: 'cyl', r: 0.55, len: 0.9, sides: 24 }, 'fitting'), atY(f, S.bonnetEnd + 1.5, INT_FLANGE.h / 2 + 1.1, -3, { kind: 'hex', across: 1, len: 0.5 }, 'fitting')], kinematic: 'bonnet', explode: [8, 8, 0] }
+      return { meshes: [atY(f, S.bonnetEnd + 1.5, d.intFlange.h / 2 + 0.4, -3, { kind: 'cyl', r: 0.55, len: 0.9, sides: 24 }, 'fitting'), atY(f, S.bonnetEnd + 1.5, d.intFlange.h / 2 + 1.1, -3, { kind: 'hex', across: 1, len: 0.5 }, 'fitting')], kinematic: 'bonnet', explode: [8, 8, 0] }
     case 16:
-      return { meshes: [atY(f, S.bonnetEnd + 1.5, INT_FLANGE.h / 2 + 0.35, 0, { kind: 'hex', across: 0.9, len: 0.7 }, 'fastener')], kinematic: 'bonnet', explode: [8, 10, 0] }
+      return { meshes: [atY(f, S.bonnetEnd + 1.5, d.intFlange.h / 2 + 0.35, 0, { kind: 'hex', across: 0.9, len: 0.7 }, 'fastener')], kinematic: 'bonnet', explode: [8, 10, 0] }
     case 17:
-      return { meshes: [atY(f, S.bonnetEnd + 1.5, INT_FLANGE.h / 2 + 0.3, 3, { kind: 'cyl', r: 0.45, len: 0.6, sides: 4 }, 'fitting')], kinematic: 'bonnet', explode: [8, 12, 0] }
+      return { meshes: [atY(f, S.bonnetEnd + 1.5, d.intFlange.h / 2 + 0.3, 3, { kind: 'cyl', r: 0.45, len: 0.6, sides: 4 }, 'fitting')], kinematic: 'bonnet', explode: [8, 12, 0] }
     case 18:
       return { meshes: [ringS(f, 2.5, 0.35, 5)], kinematic: 'bonnet', explode: [6, 16, 0] }
     case 19:
@@ -164,15 +198,15 @@ export function bonnetItemGeometry(item: number, f: BonnetFrame, withLiftingEye:
     case 23:
       return { meshes: [6, -6].map((z) => rodS(f, 0.5, -1.5, 1, 'fastener', -3.8, z)), kinematic: 'bonnet', explode: [5, 0, 0] }
     case 24:
-      return { meshes: [S.intEnd + 0.35, S.cylEnd - 0.2].map((s) => ringS(f, 6.25, 0.22, s)), kinematic: 'bonnet', explode: [26, 12, 0] }
+      return { meshes: [S.intEnd + 0.35, S.cylEnd - 0.2].map((s) => ringS(f, d.cylR - 0.25, 0.22, s)), kinematic: 'bonnet', explode: [26, 12, 0] }
     case 25:
       return { meshes: [ringS(f, 2.5, 0.3, S.bonnetEnd + 1.5)], kinematic: 'bonnet', explode: [16, 10, 0] }
     case 26:
-      return { meshes: [ringS(f, 5.95, 0.24, S.pistonFace + 1.07)], kinematic: 'ram', explode: [22, 22, 0] }
+      return { meshes: [ringS(f, d.pistonR - 0.15, 0.24, S.pistonFace + 1.07)], kinematic: 'ram', explode: [22, 22, 0] }
     case 27:
-      return { meshes: [ringS(f, 2.1, 0.3, S.cylEnd + 2)], kinematic: 'bonnet', explode: [36, 10, 0] }
+      return { meshes: [ringS(f, 2.1, 0.3, lockAt + 2)], kinematic: 'bonnet', explode: [36, 10, 0] }
     case 28:
-      return { meshes: [ringS(f, 2.0, 0.2, S.housingEnd - 0.3)], kinematic: 'bonnet', explode: [36, 13, 0] }
+      return { meshes: [ringS(f, 2.0, 0.2, housingEnd - 0.3)], kinematic: 'bonnet', explode: [36, 13, 0] }
     case 29:
       return { meshes: rcZ.map((z) => ringS(f, 1.05, 0.2, -0.5, 0, z)), kinematic: 'fixed', explode: [0, 8, 0] }
     case 30:
@@ -186,7 +220,7 @@ export function bonnetItemGeometry(item: number, f: BonnetFrame, withLiftingEye:
     case 34:
       return { meshes: BOLT_POS.map(([y, z]) => ringS(f, 1.0, 0.18, FLANGE_LEN - 0.3, y, z)), kinematic: 'bolt', explode: [10, 6, 0] }
     case 35:
-      return { meshes: CAP_POS.flatMap(([y, z]) => hexHeadS(f, 1.05, S.intEnd, 0.75, y, z)), kinematic: 'bonnet', explode: [20, 0, 0] }
+      return { meshes: CAP_POS.flatMap(([y, z]) => hexHeadS(f, 1.05, S.intEnd, 0.75, y, z * (d.intFlange.w / STANDARD_DIMS.intFlange.w))), kinematic: 'bonnet', explode: [20, 0, 0] }
     case 36:
       return { meshes: [atY(f, 7.2, topBody + 0.4, 4.5, { kind: 'hex', across: 1.0, len: 0.8 }, 'fitting')], kinematic: 'bonnet', explode: [8, 10, 0] }
     case 37:
@@ -206,7 +240,7 @@ export function bonnetItemGeometry(item: number, f: BonnetFrame, withLiftingEye:
     case 41:
       return { meshes: [ringS(f, 2.6, 0.2, 7.1, 0, 0, 'fastener')], kinematic: 'bonnet', explode: [6, 25, 0] }
     case 42:
-      return { meshes: [cylS(f, 6.14, S.pistonFace + 0.15, S.pistonFace + 0.85, 0, 0, 'softgood', 5.95)], kinematic: 'ram', explode: [22, 26, 0] }
+      return { meshes: [cylS(f, d.pistonR + 0.04, S.pistonFace + 0.15, S.pistonFace + 0.85, 0, 0, 'softgood', d.pistonR - 0.15)], kinematic: 'ram', explode: [22, 26, 0] }
     default:
       return null
   }
@@ -216,4 +250,9 @@ export function bonnetItemGeometry(item: number, f: BonnetFrame, withLiftingEye:
 export const ITEMS_WITHOUT_GEOMETRY: Record<number, string> = {
   39: 'Not drawn on the manufacturer exploded view (SD17500), so no geometry is shown.',
   43: 'Not drawn on SD17500 and the catalog quantity is "--", so no geometry is shown.',
+}
+
+/** Item 24A of the large-bore shear bonnet (p.18): O-ring at the intermediate flange to bonnet lip joint. */
+export function lbLipOringGeometry(f: BonnetFrame, d: BonnetDims): PartGeometry {
+  return { meshes: [ringS(f, d.cylR - 0.6, 0.24, S.bonnetEnd - 0.05)], kinematic: 'bonnet', explode: [16, 14, 0] }
 }

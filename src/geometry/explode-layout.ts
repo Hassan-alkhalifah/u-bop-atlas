@@ -83,13 +83,48 @@ export const BONNET_LAYOUT: Record<number, ExplodeOffset> = {
   38: [CHAIN.bonnet, 6, 0],
 }
 
+/** With a tandem booster between the cylinder and the lock (p.20, p.21), the lock chain moves further out. */
+export const BOOSTER_CHAIN_OVERRIDES: Record<number, ExplodeOffset> = {
+  7: [54, 0, 0],
+  8: [60, 0, 0],
+  13: [50, 0, 0],
+  14: [59, 0, 0],
+  27: [54, ROW_1, 0],
+  28: [56, ROW_1, 0],
+}
+
+/** Stage-2 offset per tandem booster item (p.21 numbering): head, cylinder, piston and adapter plate in order. */
+export const BOOSTER_LAYOUT: Record<number, ExplodeOffset> = {
+  4: [30, 0, 0],
+  8: [34, 0, 0],
+  9: [30, ROW_1, 0],
+  10: [32, ROW_1, 0],
+  3: [39, 0, 0],
+  11: [40, ROW_1, 0],
+  16: [39, 5, 0],
+  6: [40, ROW_PISTON, 0],
+  5: [40, ROW_PISTON, 0],
+  12: [40, ROW_PISTON_SEALS, 0],
+  13: [42, ROW_PISTON_SEALS, 0],
+  1: [43, 0, 0],
+  2: [43, 4, 0],
+  14: [44, ROW_1, 0],
+  15: [46, ROW_1, 0],
+  7: [47, 0, 0],
+}
+
+export const BOOSTER_WORLD_UP = new Set([2, 16])
+
+/** Item 24A of the large-bore shear bonnet (p.18) joins the bonnet seal row. */
+export const LB_LIP_ORING_LAYOUT: ExplodeOffset = [18, ROW_1, 0]
+
 /**
  * Parts that sit ON TOP of their parent (top seal, blade packer, fittings, bleeder, lifting eye) always move
  * physically upward. Moving them "away from the other cavity" would push the lower-cavity ones down through
  * their own parent part.
  */
 export const WORLD_UP_ITEMS = new Set([15, 16, 17, 36, 37, 38])
-export const WORLD_UP_RAM_PARTS = new Set(['topSeal', 'bladePacker'])
+export const WORLD_UP_RAM_PARTS = new Set(['topSeal', 'bladePacker', 'bladeSeals'])
 
 /** Stage-2 offset per ram part. */
 export const RAM_LAYOUT: Record<string, ExplodeOffset> = {
@@ -98,6 +133,7 @@ export const RAM_LAYOUT: Record<string, ExplodeOffset> = {
   topSeal: [CHAIN.ram, 6, 0],
   bladePacker: [-3, 5, 0],
   sidePackers: [-4, 0, 0],
+  bladeSeals: [-3, 7, 0],
 }
 
 /** How far the floor drops at full explode so rows below the lower bonnets stay above it. */

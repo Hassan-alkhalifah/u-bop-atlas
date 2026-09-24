@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import type { Assembly, ComponentInstance } from '../data/types'
 import { componentsInAssembly, dispatch } from '../state/commands'
 import { isVisible, useViewer } from '../state/store'
-import { Balloon, Icon } from './ui'
+import { Balloon, balloonText, Icon } from './ui'
 
 interface Node {
   assembly: Assembly
@@ -38,7 +38,7 @@ function ComponentRow({ c, depth }: { c: ComponentInstance; depth: number }) {
         onMouseEnter={() => useViewer.setState({ hoveredId: c.id })}
         onMouseLeave={() => useViewer.setState({ hoveredId: null })}
       >
-        <Balloon n={c.catalogItem} size="sm" />
+        <Balloon n={balloonText(c)} size="sm" />
         <span className="tree-label">{c.name}</span>
         {!hasGeometry && <span className="muted" style={{ fontSize: 11 }}>no geometry</span>}
       </button>
@@ -107,7 +107,7 @@ export function ComponentTree() {
     <nav aria-label="Component tree" className="scroll" style={{ padding: '6px 0 24px' }}>
       <div style={{ padding: '6px 12px 8px' }}>
         <div className="heading" style={{ fontSize: 15 }}>{root.assembly.name}</div>
-        <div className="muted" style={{ fontSize: 12 }}>Numbers are catalog item numbers from the Cameron exploded view SD17500.</div>
+        <div className="muted" style={{ fontSize: 12 }}>Numbers are catalog item numbers from the Cameron exploded view SD17500. Labels such as 3A come from the large-bore shear bonnet table (p.18); TB labels from the tandem booster list (p.21).</div>
       </div>
       {root.children.map((n) => (
         <AssemblyNode key={n.assembly.id} node={n} depth={1} defaultOpen={false} />

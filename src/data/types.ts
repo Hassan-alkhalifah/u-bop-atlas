@@ -65,7 +65,8 @@ export type Shape =
   | { kind: 'lathe'; profile: [number, number][]; segments?: number }
   /** Flat part: outline in the plane normal to the axis, extruded by thickness, with through-holes and bevelled edges. */
   | { kind: 'plate'; outline: Outline; thickness: number; holes?: { x: number; y: number; r: number }[]; bevel?: number }
-  | { kind: 'ramBlock'; depth: number; height: number; width: number; cutoutR: number; chamfer: number }
+  /** vee > 0: convex "V" front (apex toward the bore); vee < 0: matching concave notch (ISR, p.52). */
+  | { kind: 'ramBlock'; depth: number; height: number; width: number; cutoutR: number; chamfer: number; vee?: number }
 
 /** One renderable mesh. Coordinates: world inches, Y up, X along the bonnet axis. */
 export interface MeshSpec {
@@ -87,6 +88,8 @@ export interface ComponentInstance {
   id: string
   name: string
   catalogItem?: number
+  /** Balloon text when it is not an SD17500 item number, e.g. "3A" (p.18) or "TB3" (tandem booster, p.21). */
+  itemLabel?: string
   aliases: string[]
   assemblyId: string
   systemIds: SystemId[]
@@ -155,9 +158,20 @@ export interface AnimationDef {
   highlight?: number[]
 }
 
-export type RamKind = { type: 'pipe'; pipeSize: string } | { type: 'blind' } | { type: 'sbr' }
+/** vbr and flexpacker ids come from VBR_ROWS / FLEXPACKER_NR_ROWS in catalog.ts. */
+export type RamKind =
+  | { type: 'pipe'; pipeSize: string }
+  | { type: 'blind' }
+  | { type: 'sbr' }
+  | { type: 'isr' }
+  | { type: 'vbr'; id: string }
+  | { type: 'flexpacker'; id: string }
+
+/** Bonnet options per cavity: standard (p.12), large-bore shear bonnet (p.18), tandem booster (p.21). */
+export type BonnetType = 'standard' | 'largeBoreShear' | 'tandemBooster'
 
 export interface BopConfig {
   stack: 'double' | 'single'
   rams: Record<CavityId, RamKind>
+  bonnets: Record<CavityId, BonnetType>
 }

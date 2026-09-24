@@ -4,641 +4,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 
-// src/geometry/params.ts
-var PAT = { sourceId: "SRC-PAT", locator: "rows 4, 7, 8, 23" };
-var CAT8 = { sourceId: "SRC-CAM-CAT-2014", page: 8 };
-var T3 = (id, label, value, rationale) => ({
-  id,
-  label,
-  value,
-  unit: "in",
-  tier: "T3",
-  sources: [],
-  rationale
-});
-var PARAMS = {
-  boreDiameter: {
-    id: "boreDiameter",
-    label: "Vertical bore diameter",
-    value: 13.625,
-    unit: "in",
-    tier: "T2",
-    sources: [CAT8, { sourceId: "SRC-QT", locator: "Vertical Bore: 13.625 in" }],
-    rationale: 'Nominal bore size of the 13-5/8" BOP.'
-  },
-  overallHeightDouble: {
-    id: "overallHeightDouble",
-    label: "Overall height, double, flanged",
-    value: 66.625,
-    unit: "in",
-    tier: "T2",
-    sources: [PAT, { sourceId: "SRC-QT", locator: "Height: 66.630 in" }],
-    rationale: "Third-party rental data sheet (SRC-QT prints 66.630 in)."
-  },
-  lengthClosedLocked: {
-    id: "lengthClosedLocked",
-    label: "Overall length, bonnets closed, locking screws locked",
-    value: 114.125,
-    unit: "in",
-    tier: "T2",
-    sources: [PAT, { sourceId: "SRC-QT", locator: "Closed & Locked: 115.66 in" }],
-    rationale: "Third-party rental data sheet; SRC-QT prints 115.66 in."
-  },
-  lengthOpenUnlocked: {
-    id: "lengthOpenUnlocked",
-    label: "Overall length, bonnets opened, locking screws unlocked",
-    value: 172.75,
-    unit: "in",
-    tier: "T2",
-    sources: [PAT, { sourceId: "SRC-QT", locator: "Open & Unlocked: 175.54 in" }],
-    rationale: "Third-party rental data sheet; SRC-QT prints 175.54 in."
-  },
-  flangeStudDiameter: {
-    id: "flangeStudDiameter",
-    label: '13-5/8" 10K flange stud diameter',
-    value: 1.875,
-    unit: "in",
-    tier: "T2",
-    sources: [{ sourceId: "SRC-PAT", locator: 'row 23: 1-7/8" x 17-3/4", 20 per flange' }],
-    rationale: "Rig-up hardware from the rental data sheet. Studs are drawn shortened."
-  },
-  bodyHalfWidth: T3("bodyHalfWidth", "Body half-width along bonnet axis", 18, "No public value; sized so bonnets fit the documented overall length."),
-  bodyDepth: T3("bodyDepth", "Ram cavity housing depth (front to back)", 24, "No public value. Arrangement of column and housings follows the 3D view on catalog p.9."),
-  columnRadius: T3("columnRadius", "Body column outer radius", 13.5, "No public value."),
-  housingHeight: T3("housingHeight", "Ram cavity housing height", 20, "No public value."),
-  bodyBlockHeightDouble: T3("bodyBlockHeightDouble", "Body block height, double", 50, "No public value; flanges and necks fill the rest of the documented height."),
-  bodyBlockHeightSingle: T3("bodyBlockHeightSingle", "Body block height, single", 28, "No public value; no public overall height for a single was found."),
-  flangeOuterDiameter: T3("flangeOuterDiameter", "Top/bottom flange outer diameter", 30, "No public value."),
-  flangeThickness: T3("flangeThickness", "Top/bottom flange thickness", 4.5, "No public value."),
-  cavityOffset: T3("cavityOffset", "Ram cavity centre offset from body centre (double)", 11, "No public value."),
-  ramDepth: T3("ramDepth", "Ram block depth along bonnet axis", 10, "No public value."),
-  ramHeight: T3("ramHeight", "Ram block height", 7, "No public value (dimension G is defined on p.8 but its chart is missing)."),
-  ramWidth: T3("ramWidth", "Ram block width", 16, "No public value."),
-  ramStroke: T3("ramStroke", "Ram stroke (open to closed)", 8, "No public value; chosen so an open ram clears the documented bore."),
-  bonnetLength: T3("bonnetLength", "Bonnet length", 10, "No public value."),
-  bonnetHeight: T3("bonnetHeight", "Bonnet height", 19, "No public value."),
-  bonnetWidth: T3("bonnetWidth", "Bonnet width", 22, "No public value."),
-  intFlangeLength: T3("intFlangeLength", "Intermediate flange length", 3, "No public value."),
-  opCylinderLength: T3("opCylinderLength", "Operating cylinder length", 12, "No public value."),
-  opCylinderRadius: T3("opCylinderRadius", "Operating cylinder outer radius", 6.5, "No public value."),
-  pistonThickness: T3("pistonThickness", "Operating piston head thickness", 3, "No public value."),
-  rodRadius: T3("rodRadius", "Connecting rod radius", 2.2, "No public value."),
-  tailRodRadius: T3("tailRodRadius", "Tail rod radius", 1.8, "No public value."),
-  lockHousingLength: T3("lockHousingLength", "Locking screw housing length", 5, "No public value."),
-  lockTravel: T3("lockTravel", "Locking screw travel (locked to unlocked)", 9, "No public value. The catalog documents 32 turns per end (p.7) but not the thread pitch."),
-  rcCylinderRadius: T3("rcCylinderRadius", "Ram-change cylinder radius", 1.8, "No public value.")
-};
-var P = Object.fromEntries(Object.entries(PARAMS).map(([k, v]) => [k, v.value]));
-var S = (() => {
-  const bonnetEnd = P.bonnetLength;
-  const intEnd = bonnetEnd + P.intFlangeLength;
-  const cylEnd = intEnd + P.opCylinderLength;
-  const housingEnd = cylEnd + P.lockHousingLength;
-  const halfLengthLocked = P.lengthClosedLocked / 2;
-  const screwEnd = halfLengthLocked - P.bodyHalfWidth;
-  const pistonFace = intEnd + 1;
-  const pistonBack = pistonFace + P.pistonThickness;
-  const ramFront = -P.bodyHalfWidth;
-  const ramBack = ramFront + P.ramDepth;
-  const tailEnd = housingEnd - 2;
-  return { bonnetEnd, intEnd, cylEnd, housingEnd, screwEnd, pistonFace, pistonBack, ramFront, ramBack, tailEnd };
-})();
-var BONNET_TRAVEL = P.lengthOpenUnlocked / 2 - P.bodyHalfWidth - (S.screwEnd + P.lockTravel);
-function cavityCentres(stack) {
-  return stack === "double" ? { upper: P.cavityOffset, lower: -P.cavityOffset } : { upper: 0 };
-}
-function bodyBlockHeight(stack) {
-  return stack === "double" ? P.bodyBlockHeightDouble : P.bodyBlockHeightSingle;
-}
-function overallHeight(stack) {
-  return stack === "double" ? { value: P.overallHeightDouble, tier: "T2" } : { value: P.bodyBlockHeightSingle + 2 * (P.flangeThickness + 3), tier: "T3" };
-}
-
-// src/geometry/frame.ts
-function worldX(f, s) {
-  return f.sign * (P.bodyHalfWidth + s);
-}
-function alongS(f, shape, s0, s1, y, z2, material) {
-  return { shape, position: [worldX(f, (s0 + s1) / 2), f.cavityY + y, z2], axis: "x", material };
-}
-function cylS(f, r, s0, s1, y, z2, material, rInner) {
-  return alongS(f, { kind: "cyl", r, len: Math.abs(s1 - s0), rInner }, s0, s1, y, z2, material);
-}
-function ringS(f, major, tube, s, y = 0, z2 = 0, material = "softgood", scaleY) {
-  return { shape: { kind: "torus", major, tube, scaleY }, position: [worldX(f, s), f.cavityY + y, z2], axis: "x", material };
-}
-function boxS(f, len, h, w, s0, y, z2, material) {
-  return { shape: { kind: "box", size: [len, h, w] }, position: [worldX(f, s0 + len / 2), f.cavityY + y, z2], axis: "x", material };
-}
-function hexS(f, across, len, s0, y, z2, material = "fastener") {
-  return alongS(f, { kind: "hex", across, len }, s0, s0 + len, y, z2, material);
-}
-function ellipsePoints(n, ry, rz, phase = 0) {
-  return Array.from({ length: n }, (_, i) => {
-    const a = phase + i / n * Math.PI * 2;
-    return [Math.sin(a) * ry, Math.cos(a) * rz];
-  });
-}
-function latheS(f, profile, material, y = 0, z2 = 0) {
-  return {
-    shape: { kind: "lathe", profile },
-    position: [worldX(f, 0), f.cavityY + y, z2],
-    axis: "x",
-    rotation: [0, 0, f.sign > 0 ? -Math.PI / 2 : Math.PI / 2],
-    material
-  };
-}
-function plateS(f, outline, s0, thickness, material, holes = [], y = 0, bevel = 0.3) {
-  return { shape: { kind: "plate", outline, thickness, holes, bevel }, position: [worldX(f, s0 + thickness / 2), f.cavityY + y, 0], axis: "x", material };
-}
-function rodS(f, r, s0, s1, material, y = 0, z2 = 0) {
-  const c = Math.min(r * 0.25, 0.2);
-  return latheS(f, [[0, s0], [r - c, s0], [r, s0 + c], [r, s1 - c], [r - c, s1], [0, s1]], material, y, z2);
-}
-function threadS(f, r, s0, s1, pitch, material, y = 0, z2 = 0) {
-  const pts = [[0, s0], [r * 0.86, s0]];
-  for (let s = s0; s + pitch <= s1; s += pitch) {
-    pts.push([r, s + pitch * 0.5], [r * 0.86, s + pitch]);
-  }
-  pts.push([0, pts[pts.length - 1][1]]);
-  return latheS(f, pts, material, y, z2);
-}
-function hexHeadS(f, across, s0, len, y, z2, material = "fastener") {
-  return [
-    cylS(f, across * 0.55, s0, s0 + len * 0.18, y, z2, material),
-    alongS(f, { kind: "hex", across, len: len * 0.82 }, s0 + len * 0.18, s0 + len, y, z2, material)
-  ];
-}
-
-// src/geometry/body-geometry.ts
-var boreR = () => P.boreDiameter / 2;
-var FLANGE_BOLT_CIRCLE = 13;
-var FLANGE_HOLE_R = 1.05;
-function flangeStations(stack) {
-  const top = overallHeight(stack).value / 2;
-  const flangeBottom = top - P.flangeThickness;
-  const blockTop = bodyBlockHeight(stack) / 2;
-  return { top, flangeBottom, blockTop };
-}
-function cavityY(stack, cavity) {
-  const c = cavityCentres(stack);
-  return cavity === "upper" ? c.upper : c.lower ?? 0;
-}
-function latheY(profile, material, flipDown = false) {
-  return { shape: { kind: "lathe", profile, segments: 72 }, position: [0, 0, 0], axis: "y", material, rotation: flipDown ? [Math.PI, 0, 0] : [0, 0, 0] };
-}
-function bodyGeometry(stack) {
-  const { top, flangeBottom, blockTop } = flangeStations(stack);
-  const b = boreR();
-  const R = P.columnRadius;
-  const meshes = [
-    // Column with the vertical bore.
-    latheY([[b, -blockTop], [R - 0.6, -blockTop], [R, -blockTop + 0.6], [R, blockTop - 0.6], [R - 0.6, blockTop], [b, blockTop], [b, -blockTop]], "structure")
-  ];
-  const cavities = stack === "double" ? ["upper", "lower"] : ["upper"];
-  for (const cav of cavities) {
-    meshes.push({
-      shape: { kind: "plate", outline: { type: "roundRect", w: 2 * P.bodyHalfWidth, h: P.bodyDepth, r: 3.5 }, thickness: P.housingHeight, holes: [{ x: 0, y: 0, r: b }], bevel: 0.8 },
-      position: [0, cavityY(stack, cav), 0],
-      axis: "y",
-      material: "structure"
-    });
-  }
-  for (const down of [false, true]) {
-    meshes.push(
-      latheY([[b, blockTop - 0.1], [R - 1, blockTop - 0.1], [11.2, flangeBottom - 1.2], [11.6, flangeBottom], [b, flangeBottom], [b, blockTop - 0.1]], "structure", down),
-      {
-        shape: {
-          kind: "plate",
-          outline: { type: "circle", r: P.flangeOuterDiameter / 2 },
-          thickness: P.flangeThickness,
-          holes: [{ x: 0, y: 0, r: b }, ...ellipsePoints(20, FLANGE_BOLT_CIRCLE, FLANGE_BOLT_CIRCLE).map(([u, v]) => ({ x: u, y: v, r: FLANGE_HOLE_R }))],
-          bevel: 0.35
-        },
-        position: [0, (down ? -1 : 1) * (top - P.flangeThickness / 2), 0],
-        axis: "y",
-        material: "structure"
-      },
-      // Raised face with ring groove (visual only; BX-159 gasket per SRC-PAT).
-      latheY([[b, top - 0.01], [10.2, top - 0.01], [10.2, top + 0.25], [8.9, top + 0.25], [8.9, top + 0.05], [8.3, top + 0.05], [8.3, top + 0.25], [b, top + 0.25]], "moving", down)
-    );
-  }
-  return { meshes, kinematic: "fixed", explode: [0, 0, 0] };
-}
-function outletY(stack, cavity) {
-  return cavityY(stack, cavity) - 7.5;
-}
-function outletGeometry(stack, cavity, front) {
-  const y = outletY(stack, cavity);
-  const dir = front ? 1 : -1;
-  const z0 = P.bodyDepth / 2 - 0.5;
-  const bore = 2.03;
-  const rot = [dir * Math.PI / 2, 0, 0];
-  const hub = {
-    shape: { kind: "lathe", profile: [[bore, 0], [3.4, 0], [3.4, 3.2], [3, 3.6], [bore, 3.6], [bore, 0]] },
-    position: [0, y, dir * z0],
-    axis: "z",
-    material: "structure",
-    rotation: rot
-  };
-  const flangeZ = z0 + 3.6 + 0.8;
-  const flange = {
-    shape: { kind: "plate", outline: { type: "circle", r: 5.3 }, thickness: 1.6, holes: [{ x: 0, y: 0, r: bore }, ...ellipsePoints(8, 4.1, 4.1, Math.PI / 8).map(([u, v]) => ({ x: u, y: v, r: 0.62 }))], bevel: 0.2 },
-    position: [0, y, dir * flangeZ],
-    axis: "z",
-    material: "structure"
-  };
-  const studs = ellipsePoints(8, 4.1, 4.1, Math.PI / 8).flatMap(([u, v]) => [
-    { shape: { kind: "cyl", r: 0.5625, len: 3.2, sides: 16 }, position: [u, y + v, dir * (flangeZ + 0.8)], axis: "z", material: "fastener" },
-    { shape: { kind: "hex", across: 1.8, len: 0.9 }, position: [u, y + v, dir * (flangeZ - 1.25)], axis: "z", material: "fastener" }
-  ]);
-  return { meshes: [hub, flange, ...studs], kinematic: "fixed", explode: [0, 0, dir * 10] };
-}
-function flangeStudGeometry(stack, topFlange) {
-  const { top, flangeBottom } = flangeStations(stack);
-  const dir = topFlange ? 1 : -1;
-  const y0 = flangeBottom - 1.4;
-  const y1 = top + 3;
-  const r = P.flangeStudDiameter / 2;
-  const meshes = ellipsePoints(20, FLANGE_BOLT_CIRCLE, FLANGE_BOLT_CIRCLE).flatMap(([a, b]) => [
-    { shape: { kind: "cyl", r, len: y1 - y0, sides: 16 }, position: [a, dir * ((y0 + y1) / 2), b], axis: "y", material: "fastener" },
-    { shape: { kind: "hex", across: 2.9, len: 1.2 }, position: [a, dir * (flangeBottom - 0.7), b], axis: "y", material: "fastener" }
-  ]);
-  return { meshes, kinematic: "fixed", explode: [0, dir * 14, 0] };
-}
-function portGeometry(stack, cavity, index) {
-  const x = index === 0 ? -15 : 15;
-  const z2 = P.bodyDepth / 2;
-  return {
-    meshes: [
-      { shape: { kind: "cyl", r: 1.2, len: 0.6, sides: 32 }, position: [x, cavityY(stack, cavity) + 4, z2 + 0.3], axis: "z", material: "fitting" },
-      { shape: { kind: "hex", across: 1.8, len: 1.1 }, position: [x, cavityY(stack, cavity) + 4, z2 + 1.1], axis: "z", material: "fitting" }
-    ],
-    kinematic: "fixed",
-    explode: [0, 0, 6]
-  };
-}
-
-// src/geometry/bonnet-geometry.ts
-var FLANGE_LEN = 4;
-var BONNET_FLANGE = { type: "roundRect", w: 24, h: 21, r: 3 };
-var BONNET_BODY = { type: "roundRect", w: 21, h: 15, r: 3 };
-var INT_FLANGE = { type: "octagon", w: 23, h: 19, chamfer: 4.5 };
-var RC_Z = 8.4;
-var RC_R = P.rcCylinderRadius - 0.2;
-var RC_HEAD_S = S.cylEnd - 1;
-var RC_ROD_R = 0.8;
-var RC_END = S.housingEnd - 2.5;
-var COLLAR_R = 8.2;
-var STUD_R = 7.2;
-var BOLT_Y = 9;
-var BOLT_POS = [[BOLT_Y, 8.2], [BOLT_Y, -8.2], [-BOLT_Y, 8.2], [-BOLT_Y, -8.2]];
-var STUD_POS = ellipsePoints(8, STUD_R, STUD_R, Math.PI / 8);
-var CAP_POS = [20, 48, 76, 104, 132, 160].flatMap((deg) => {
-  const a = deg * Math.PI / 180;
-  return [
-    [7.4 * Math.sin(a), 9.4 * Math.cos(a)],
-    [-7.4 * Math.sin(a), 9.4 * Math.cos(a)]
-  ];
-});
-function atY(f, s, y, z2, shape, material) {
-  return { shape, position: [worldX(f, s), f.cavityY + y, z2], axis: "y", material };
-}
-function pistonProfile() {
-  const a = S.ramBack;
-  const face = S.pistonFace;
-  const back = S.pistonBack;
-  const r = 6.1;
-  return [
-    [0, a],
-    [P.rodRadius - 0.2, a],
-    [P.rodRadius, a + 0.2],
-    [P.rodRadius, face - 0.4],
-    [P.rodRadius + 0.5, face],
-    [r - 0.1, face],
-    [r, face + 0.1],
-    [r, face + 0.9],
-    [r - 0.35, face + 0.9],
-    [r - 0.35, face + 1.25],
-    [r, face + 1.25],
-    [r, back - 0.1],
-    [r - 0.1, back],
-    [P.tailRodRadius + 0.4, back],
-    [P.tailRodRadius, back + 0.4],
-    [P.tailRodRadius, S.tailEnd - 0.2],
-    [P.tailRodRadius - 0.2, S.tailEnd],
-    [0, S.tailEnd]
-  ];
-}
-function bonnetItemGeometry(item, f, withLiftingEye) {
-  const rcZ = [RC_Z, -RC_Z];
-  const topBody = BONNET_BODY.h / 2;
-  switch (item) {
-    case 2:
-      return {
-        meshes: [plateS(f, INT_FLANGE, S.bonnetEnd, P.intFlangeLength, "structureAlt", [{ x: 0, y: 0, r: P.rodRadius + 0.3 }, { x: RC_Z, y: 0, r: RC_R + 0.05 }, { x: -RC_Z, y: 0, r: RC_R + 0.05 }], 0, 0.45)],
-        kinematic: "bonnet",
-        explode: [16, 0, 0]
-      };
-    case 3:
-      return {
-        meshes: [
-          plateS(f, BONNET_FLANGE, 0, FLANGE_LEN, "structure", [], 0, 0.6),
-          plateS(f, BONNET_BODY, FLANGE_LEN - 0.3, S.bonnetEnd - FLANGE_LEN + 0.3, "structure", [], 0, 0.6)
-        ],
-        kinematic: "bonnet",
-        explode: [8, 0, 0]
-      };
-    case 5:
-      return { meshes: [latheS(f, pistonProfile(), "moving")], kinematic: "ram", explode: [22, 16, 0] };
-    case 6:
-      return {
-        meshes: [
-          latheS(f, [
-            [6, S.intEnd],
-            [6.85, S.intEnd],
-            [6.85, S.intEnd + 0.7],
-            [P.opCylinderRadius, S.intEnd + 0.9],
-            [P.opCylinderRadius, S.cylEnd - 1.6],
-            [COLLAR_R - 0.2, S.cylEnd - 1.4],
-            [COLLAR_R, S.cylEnd - 1.2],
-            [COLLAR_R, S.cylEnd],
-            [6, S.cylEnd],
-            [6, S.intEnd]
-          ], "structure")
-        ],
-        kinematic: "bonnet",
-        explode: [30, 0, 0]
-      };
-    case 7:
-      return {
-        meshes: [
-          plateS(f, { type: "circle", r: COLLAR_R }, S.cylEnd, 1.5, "structureAlt", [{ x: 0, y: 0, r: 1.7 }, ...STUD_POS.map(([y, z2]) => ({ x: z2, y, r: 0.5 }))], 0, 0.25),
-          latheS(f, [[1.7, S.cylEnd + 1.4], [4.6, S.cylEnd + 1.4], [4.6, S.cylEnd + 2.1], [4.2, S.cylEnd + 2.4], [4.2, S.housingEnd - 0.4], [3.8, S.housingEnd], [1.7, S.housingEnd], [1.7, S.cylEnd + 1.4]], "structureAlt")
-        ],
-        kinematic: "bonnet",
-        explode: [40, 0, 0]
-      };
-    case 8:
-      return {
-        meshes: [
-          threadS(f, 1.5, S.tailEnd, S.screwEnd - 2.2, 0.35, "moving"),
-          rodS(f, 1.1, S.screwEnd - 2.3, S.screwEnd - 1.5, "moving"),
-          boxS(f, 1.5, 1.35, 1.35, S.screwEnd - 1.5, 0, 0, "moving")
-        ],
-        kinematic: "lock",
-        explode: [52, 0, 0],
-        spin: true
-      };
-    case 9:
-    case 10: {
-      const z2 = item === 9 ? RC_Z : -RC_Z;
-      return {
-        meshes: [
-          rodS(f, RC_ROD_R, -4, RC_HEAD_S, "moving", 0, z2),
-          latheS(f, [[0, RC_HEAD_S], [1.4, RC_HEAD_S], [1.5, RC_HEAD_S + 0.1], [1.5, RC_HEAD_S + 0.3], [1.35, RC_HEAD_S + 0.3], [1.35, RC_HEAD_S + 0.6], [1.5, RC_HEAD_S + 0.6], [1.5, RC_HEAD_S + 0.9], [1.4, RC_HEAD_S + 1], [0, RC_HEAD_S + 1]], "moving", 0, z2)
-        ],
-        kinematic: "fixed",
-        explode: [2, 0, item === 9 ? 6 : -6]
-      };
-    }
-    case 11:
-      return {
-        meshes: rcZ.flatMap((z2) => [
-          latheS(f, [[RC_R - 0.15, 1], [RC_R, 1], [RC_R, RC_END - 0.8], [RC_R - 0.3, RC_END - 0.3], [RC_R - 0.9, RC_END], [0, RC_END + 0.05]], "structureAlt", 0, z2),
-          alongS(f, { kind: "hex", across: 2 * RC_R + 0.7, len: 0.9 }, S.intEnd + 0.15, S.intEnd + 1.05, 0, z2, "structureAlt")
-        ]),
-        kinematic: "bonnet",
-        explode: [14, 0, 0]
-      };
-    case 12:
-      return {
-        meshes: BOLT_POS.flatMap(([y, z2]) => [rodS(f, 0.9, -7, FLANGE_LEN, "fastener", y, z2), ...hexHeadS(f, 2.4, FLANGE_LEN, 1.9, y, z2)]),
-        kinematic: "bolt",
-        explode: [12, 0, 0]
-      };
-    case 13:
-      return { meshes: STUD_POS.map(([y, z2]) => threadS(f, 0.45, S.cylEnd - 1.3, S.cylEnd + 2.5, 0.18, "fastener", y, z2)), kinematic: "bonnet", explode: [26, 0, 0] };
-    case 14:
-      return { meshes: STUD_POS.map(([y, z2]) => hexS(f, 1.15, 0.8, S.cylEnd + 1.5, y, z2)), kinematic: "bonnet", explode: [44, 0, 0] };
-    case 15:
-      return { meshes: [atY(f, S.bonnetEnd + 1.5, INT_FLANGE.h / 2 + 0.4, -3, { kind: "cyl", r: 0.55, len: 0.9, sides: 24 }, "fitting"), atY(f, S.bonnetEnd + 1.5, INT_FLANGE.h / 2 + 1.1, -3, { kind: "hex", across: 1, len: 0.5 }, "fitting")], kinematic: "bonnet", explode: [8, 8, 0] };
-    case 16:
-      return { meshes: [atY(f, S.bonnetEnd + 1.5, INT_FLANGE.h / 2 + 0.35, 0, { kind: "hex", across: 0.9, len: 0.7 }, "fastener")], kinematic: "bonnet", explode: [8, 10, 0] };
-    case 17:
-      return { meshes: [atY(f, S.bonnetEnd + 1.5, INT_FLANGE.h / 2 + 0.3, 3, { kind: "cyl", r: 0.45, len: 0.6, sides: 4 }, "fitting")], kinematic: "bonnet", explode: [8, 12, 0] };
-    case 18:
-      return { meshes: [ringS(f, 2.5, 0.35, 5)], kinematic: "bonnet", explode: [6, 16, 0] };
-    case 19:
-      return { meshes: [ringS(f, 2.5, 0.3, 5.8)], kinematic: "bonnet", explode: [6, 19, 0] };
-    case 20:
-      return { meshes: [ringS(f, 2.55, 0.4, 3)], kinematic: "bonnet", explode: [6, 10, 0] };
-    case 21:
-      return { meshes: [2.3, 3.7].map((s) => cylS(f, 2.9, s - 0.12, s + 0.12, 0, 0, "softgood", 2.25)), kinematic: "bonnet", explode: [6, 13, 0] };
-    case 22:
-      return { meshes: [ringS(f, 8, 0.35, 0.15, 0, 0, "softgood", 0.72)], kinematic: "bonnet", explode: [3, 0, 0] };
-    case 23:
-      return { meshes: [6, -6].map((z2) => rodS(f, 0.5, -1.5, 1, "fastener", -3.8, z2)), kinematic: "bonnet", explode: [5, 0, 0] };
-    case 24:
-      return { meshes: [S.intEnd + 0.35, S.cylEnd - 0.2].map((s) => ringS(f, 6.25, 0.22, s)), kinematic: "bonnet", explode: [26, 12, 0] };
-    case 25:
-      return { meshes: [ringS(f, 2.5, 0.3, S.bonnetEnd + 1.5)], kinematic: "bonnet", explode: [16, 10, 0] };
-    case 26:
-      return { meshes: [ringS(f, 5.95, 0.24, S.pistonFace + 1.07)], kinematic: "ram", explode: [22, 22, 0] };
-    case 27:
-      return { meshes: [ringS(f, 2.1, 0.3, S.cylEnd + 2)], kinematic: "bonnet", explode: [36, 10, 0] };
-    case 28:
-      return { meshes: [ringS(f, 2, 0.2, S.housingEnd - 0.3)], kinematic: "bonnet", explode: [36, 13, 0] };
-    case 29:
-      return { meshes: rcZ.map((z2) => ringS(f, 1.05, 0.2, -0.5, 0, z2)), kinematic: "fixed", explode: [0, 8, 0] };
-    case 30:
-      return { meshes: rcZ.map((z2) => ringS(f, 1.05, 0.2, S.bonnetEnd + 1.5, 0, z2)), kinematic: "bonnet", explode: [16, 8, 0] };
-    case 31:
-      return { meshes: rcZ.map((z2) => ringS(f, RC_R + 0.1, 0.18, S.intEnd - 0.1, 0, z2)), kinematic: "bonnet", explode: [16, 11, 0] };
-    case 32:
-      return { meshes: rcZ.map((z2) => ringS(f, RC_R + 0.1, 0.18, 1.3, 0, z2)), kinematic: "bonnet", explode: [8, 11, 0] };
-    case 33:
-      return { meshes: rcZ.map((z2) => ringS(f, 1.4, 0.16, RC_HEAD_S + 0.45, 0, z2)), kinematic: "fixed", explode: [2, 8, 0] };
-    case 34:
-      return { meshes: BOLT_POS.map(([y, z2]) => ringS(f, 1, 0.18, FLANGE_LEN - 0.3, y, z2)), kinematic: "bolt", explode: [10, 6, 0] };
-    case 35:
-      return { meshes: CAP_POS.flatMap(([y, z2]) => hexHeadS(f, 1.05, S.intEnd, 0.75, y, z2)), kinematic: "bonnet", explode: [20, 0, 0] };
-    case 36:
-      return { meshes: [atY(f, 7.2, topBody + 0.4, 4.5, { kind: "hex", across: 1, len: 0.8 }, "fitting")], kinematic: "bonnet", explode: [8, 10, 0] };
-    case 37:
-      return { meshes: [atY(f, 7.2, topBody + 1.1, 4.5, { kind: "cyl", r: 0.35, len: 0.6, sides: 24 }, "fitting")], kinematic: "bonnet", explode: [8, 13, 0] };
-    case 38:
-      if (!withLiftingEye) return null;
-      return {
-        meshes: [
-          { shape: { kind: "torus", major: 1.2, tube: 0.32 }, position: [worldX(f, 7.2), f.cavityY + topBody + 2.2, -3], axis: "z", material: "fastener" },
-          atY(f, 7.2, topBody + 0.5, -3, { kind: "cyl", r: 0.9, len: 0.5, sides: 24 }, "fastener")
-        ],
-        kinematic: "bonnet",
-        explode: [5, 8, 0]
-      };
-    case 40:
-      return { meshes: [cylS(f, 3, 6.45, 6.75, 0, 0, "fastener", 2.25)], kinematic: "bonnet", explode: [6, 22, 0] };
-    case 41:
-      return { meshes: [ringS(f, 2.6, 0.2, 7.1, 0, 0, "fastener")], kinematic: "bonnet", explode: [6, 25, 0] };
-    case 42:
-      return { meshes: [cylS(f, 6.14, S.pistonFace + 0.15, S.pistonFace + 0.85, 0, 0, "softgood", 5.95)], kinematic: "ram", explode: [22, 26, 0] };
-    default:
-      return null;
-  }
-}
-var ITEMS_WITHOUT_GEOMETRY = {
-  39: "Not drawn on the manufacturer exploded view (SD17500), so no geometry is shown.",
-  43: 'Not drawn on SD17500 and the catalog quantity is "--", so no geometry is shown.'
-};
-
-// src/geometry/explode-layout.ts
-var ROW_1 = 15;
-var ROW_2 = 20;
-var ROW_PISTON = 26;
-var ROW_PISTON_SEALS = 34;
-var CHAIN = {
-  ram: 0,
-  bonnet: 8,
-  intFlange: 16,
-  cylinder: 26,
-  housing: 38,
-  screw: 48
-};
-var BONNET_LAYOUT = {
-  // Main chain
-  3: [CHAIN.bonnet, 0, 0],
-  2: [CHAIN.intFlange, 0, 0],
-  6: [CHAIN.cylinder, 0, 0],
-  11: [CHAIN.cylinder, 0, 0],
-  7: [CHAIN.housing, 0, 0],
-  8: [CHAIN.screw, 0, 0],
-  // Piston lifts above the line so its rod clears the bonnet and cylinder.
-  5: [10, ROW_PISTON, 0],
-  26: [10, ROW_PISTON_SEALS, 0],
-  42: [13, ROW_PISTON_SEALS, 0],
-  // Ram-change pistons move sideways out of their cylinders.
-  9: [2, 0, 12],
-  10: [2, 0, -12],
-  33: [2, ROW_1, 0],
-  // Fasteners pull straight out of their holes.
-  // Bolts stop just clear of the bonnet flange, before the intermediate flange.
-  12: [19, 0, 0],
-  34: [20, 0, 0],
-  35: [CHAIN.intFlange + 5, 0, 0],
-  13: [32, 0, 0],
-  14: [CHAIN.screw, 0, 0],
-  23: [-4, 0, 0],
-  // Bonnet face seal floats between the ram and the bonnet.
-  22: [3, 0, 0],
-  // Connecting-rod seal stack: one row above the bonnet, in assembly order.
-  21: [2, ROW_1, 0],
-  20: [6, ROW_1, 0],
-  18: [8, ROW_1, 0],
-  19: [10, ROW_1, 0],
-  40: [12, ROW_1, 0],
-  41: [14, ROW_1, 0],
-  // Intermediate-flange and cylinder seals: same row, further out.
-  25: [22, ROW_1, 0],
-  24: [CHAIN.cylinder, ROW_1, 0],
-  // Ram-change seals: second row.
-  29: [6, ROW_2, 0],
-  32: [6, ROW_2, 0],
-  30: [22, ROW_2, 0],
-  31: [24, ROW_2, 0],
-  // Tail-rod seals above the lock housing.
-  27: [CHAIN.housing, ROW_1, 0],
-  28: [CHAIN.housing, ROW_1, 0],
-  // Small fittings lift off their parent part.
-  15: [CHAIN.intFlange, 4, 0],
-  16: [CHAIN.intFlange, 4, 0],
-  17: [CHAIN.intFlange, 4, 0],
-  36: [CHAIN.bonnet, 3, 0],
-  37: [CHAIN.bonnet, 5, 0],
-  38: [CHAIN.bonnet, 6, 0]
-};
-var RAM_LAYOUT = {
-  body: [CHAIN.ram, 0, 0],
-  packer: [-4, 0, 0],
-  topSeal: [CHAIN.ram, 6, 0],
-  bladePacker: [-3, 5, 0],
-  sidePackers: [-4, 0, 0]
-};
-
-// src/geometry/ram-geometry.ts
-var PACKER_DEPTH = 1.4;
-var PLATE = 0.35;
-function block(f, s0, s1, cutoutR, chamfer, material, y = 0, height = P.ramHeight, width = P.ramWidth) {
-  return {
-    shape: { kind: "ramBlock", depth: s1 - s0, height, width, cutoutR, chamfer },
-    position: [worldX(f, (s0 + s1) / 2), f.cavityY + y, 0],
-    axis: "x",
-    material,
-    flip: f.sign < 0
-  };
-}
-function cutoutRadius(kind) {
-  return kind.type === "pipe" ? Number(kind.pipeSize) / 2 : 0;
-}
-function topSealArc(f, front) {
-  const R = P.ramWidth / 2 - 0.9;
-  return {
-    shape: { kind: "torus", major: R, tube: 0.32, arc: Math.PI },
-    position: [worldX(f, front + 1.6), f.cavityY + P.ramHeight / 2 + 0.05, 0],
-    axis: "y",
-    material: "softgood",
-    rotation: [Math.PI / 2, 0, f.sign > 0 ? -Math.PI / 2 : Math.PI / 2]
-  };
-}
-function ramPartGeometry(kind, part, f, isUpperBlade) {
-  const front = S.ramFront;
-  const cut = cutoutRadius(kind);
-  const chamfer = kind.type === "sbr" ? isUpperBlade ? 2.5 : -2.5 : 0;
-  const topY = P.ramHeight / 2;
-  switch (part) {
-    case "body":
-      return {
-        meshes: [block(f, front + (kind.type === "sbr" ? 0 : PACKER_DEPTH), S.ramBack, cut, kind.type === "sbr" ? chamfer : 0, "ram")],
-        kinematic: "ram",
-        explode: [0, 0, 0]
-      };
-    case "packer": {
-      if (kind.type === "sbr") return null;
-      const rubberH = P.ramHeight - 2 * PLATE;
-      return {
-        meshes: [
-          block(f, front, front + PACKER_DEPTH, cut, 0, "softgood", 0, rubberH),
-          block(f, front + 0.05, front + PACKER_DEPTH, cut, 0, "ram", topY - PLATE / 2, PLATE),
-          block(f, front + 0.05, front + PACKER_DEPTH, cut, 0, "ram", -topY + PLATE / 2, PLATE)
-        ],
-        kinematic: "ram",
-        explode: [-6, 0, 0]
-      };
-    }
-    case "topSeal":
-      return { meshes: [topSealArc(f, front)], kinematic: "ram", explode: [0, 8, 0] };
-    case "bladePacker":
-      if (kind.type !== "sbr" || !isUpperBlade) return null;
-      return {
-        meshes: [{ shape: { kind: "box", size: [2.6, 0.7, P.ramWidth - 3] }, position: [worldX(f, front + 2.2), f.cavityY + topY - 1.2, 0], axis: "x", material: "softgood" }],
-        kinematic: "ram",
-        explode: [-4, 6, 0]
-      };
-    case "sidePackers":
-      if (kind.type !== "sbr") return null;
-      return {
-        meshes: [1, -1].map((dz) => ({
-          shape: { kind: "box", size: [2.2, P.ramHeight - 1.2, 0.9] },
-          position: [worldX(f, front + 1.6 + dz * chamfer / 4), f.cavityY, dz * (P.ramWidth / 2 - 0.6)],
-          axis: "x",
-          material: "softgood"
-        })),
-        kinematic: "ram",
-        explode: [-5, 0, 0]
-      };
-  }
-}
-
 // data/extracted/cameron-catalog-13-5-8-10k.json
 var cameron_catalog_13_5_8_10k_default = {
   sourceId: "SRC-CAM-CAT-2014",
@@ -1772,6 +1137,23 @@ var cameron_catalog_13_5_8_10k_default = {
         ""
       ]
     },
+    {
+      page: 7,
+      cells: [
+        '13-5/8" Except 15,000 psi',
+        "10.5",
+        "",
+        "10.9",
+        "",
+        "32",
+        "",
+        "10.8:1",
+        "",
+        "4.5:1"
+      ]
+    }
+  ],
+  largeBoreOperatingData: [
     {
       page: 7,
       cells: [
@@ -3149,6 +2531,19 @@ var cameron_catalog_13_5_8_10k_default = {
       ]
     }
   ],
+  isrShearRamsLower: [
+    {
+      page: 52,
+      cells: [
+        '13-5/8" 3,000, 5,000 and 10,000',
+        "2164776-03",
+        "2164774-01",
+        "2010985-01",
+        "2010985-02",
+        "645033-01-00-01"
+      ]
+    }
+  ],
   variableBoreRams: [
     {
       page: 54,
@@ -3225,6 +2620,45 @@ var cameron_catalog_13_5_8_10k_default = {
         "2164404-01",
         "2164765-01",
         "2164807-01"
+      ]
+    }
+  ],
+  variableBoreRamsHighTemp: [
+    {
+      page: 54,
+      cells: [
+        '13-5/8" 3,000 5,000 and 10,000',
+        '5-7/8" to 3-1/2"',
+        "2164806-01",
+        "2164404-01",
+        "2164765-01",
+        "2164807-01"
+      ]
+    }
+  ],
+  flexpackerNr: [
+    {
+      page: 55,
+      cells: [
+        '13-5/8" 3,000, 5,000 and 10,000',
+        '2-3/8" x 3-1/2"',
+        "2011716-01"
+      ]
+    },
+    {
+      page: 55,
+      cells: [
+        '13-5/8" 3,000, 5,000 and 10,000',
+        '3-1/2" x 5"',
+        "2011673-01"
+      ]
+    },
+    {
+      page: 55,
+      cells: [
+        '13-5/8" 3,000, 5,000 and 10,000',
+        '5" x 6-5/8"',
+        "2011688-01"
       ]
     }
   ],
@@ -3502,16 +2936,63 @@ var SBR = (() => {
     lower: { subassembly: l[1], body: l[2], bladePacker: null, sidePackers: [l[3], l[4]], topSeal: l[5] }
   };
 })();
+var isrUpper = cameron_catalog_13_5_8_10k_default.isrShearRams.map((r) => r.cells).find((c) => c[0].startsWith("13-5/8"));
+var isrLower = cameron_catalog_13_5_8_10k_default.isrShearRamsLower.map((r) => r.cells).find((c) => c[0].startsWith("13-5/8"));
+var ISR = (() => {
+  if (!isrUpper || !isrLower) throw new Error("ISR rows missing");
+  return {
+    upper: { subassembly: isrUpper[1], body: isrUpper[2], sidePackers: [isrUpper[3], isrUpper[4]], topSeal: isrUpper[5], bladeSeals: [isrUpper[6], isrUpper[7]] },
+    lower: { subassembly: isrLower[1], body: isrLower[2], sidePackers: [isrLower[3], isrLower[4]], topSeal: isrLower[5], bladeSeals: null }
+  };
+})();
+function parseInches(text) {
+  const m = text.replace(/"/g, "").trim().match(/^(\d+)(?:-(\d+)\/(\d+))?$/);
+  if (!m) throw new Error(`Unreadable pipe size: ${text}`);
+  return Number(m[1]) + (m[2] ? Number(m[2]) / Number(m[3]) : 0);
+}
+function sizeRange(text) {
+  const [a, b] = text.split(/\s+(?:to|x)\s+/).map(parseInches);
+  if (a === void 0 || b === void 0) throw new Error(`Unreadable pipe size range: ${text}`);
+  return { min: Math.min(a, b), max: Math.max(a, b) };
+}
+function toVbrRow(c, highTemp) {
+  const { min, max } = sizeRange(c[1]);
+  return { id: `${highTemp ? "ht" : "v"}${min}-${max}`, range: c[1], min, max, highTemp, subassembly: c[2], body: c[3], packer: c[4], topSeal: c[5] };
+}
+var VBR_ROWS = [
+  ...cameron_catalog_13_5_8_10k_default.variableBoreRams.map((r) => r.cells).filter((c) => c[0].startsWith("13-5/8") && c[0].includes("VBR-II")).map((c) => toVbrRow(c, false)),
+  ...cameron_catalog_13_5_8_10k_default.variableBoreRamsHighTemp.map((r) => toVbrRow(r.cells, true))
+];
+function vbrRow(id) {
+  const row = VBR_ROWS.find((r) => r.id === id);
+  if (!row) throw new Error(`No VBR row ${id}`);
+  return row;
+}
+var FLEXPACKER_NR_ROWS = cameron_catalog_13_5_8_10k_default.flexpackerNr.map((r) => {
+  const { min, max } = sizeRange(r.cells[1]);
+  return { id: `f${min}-${max}`, range: r.cells[1], min, max, packer: r.cells[2] };
+});
+function flexpackerRow(id) {
+  const row = FLEXPACKER_NR_ROWS.find((r) => r.id === id);
+  if (!row) throw new Error(`No FLEXPACKER-NR row ${id}`);
+  return row;
+}
+var FLEXPACKER_TOP_SEAL = (() => {
+  const c = cameron_catalog_13_5_8_10k_default.flexpackers.map((r) => r.cells).find((x) => x[0] === '13-5/8"' && x.length >= 4);
+  return c ? { packer: c[2].replace(/^\*/, ""), topSeal: c[3] } : null;
+})();
 var opRow = cameron_catalog_13_5_8_10k_default.operatingData.map((r) => r.cells).find((c) => c[0].startsWith('13-5/8" Except'));
 if (!opRow) throw new Error("Operating data row missing");
 var opValues = opRow.filter((x) => x !== "");
-var OPERATING_DATA = {
-  galsToOpen: opValues[1],
-  galsToClose: opValues[2],
-  lockingScrewTurns: opValues[3],
-  closingRatio: opValues[4],
-  openingRatio: opValues[5]
-};
+function operatingData(values) {
+  return { galsToOpen: values[1], galsToClose: values[2], lockingScrewTurns: values[3], closingRatio: values[4], openingRatio: values[5] };
+}
+var OPERATING_DATA = operatingData(opValues);
+var LB_OPERATING_DATA = (() => {
+  const row = cameron_catalog_13_5_8_10k_default.largeBoreOperatingData[0]?.cells.filter((x) => x !== "");
+  if (!row) throw new Error("Large bore operating data row missing");
+  return operatingData(row);
+})();
 function rowsOf(key) {
   return cameron_catalog_13_5_8_10k_default[key].map((r) => r.cells);
 }
@@ -3526,8 +3007,636 @@ var LB_SHEAR_BONNET_10K = (() => {
   const rows = rowsOf("largeBoreShearBonnet");
   const headerIdx = rows.findIndex((c) => c[2] === "10,000 psi" && c[1] === "(2 Required per Cavity)");
   if (headerIdx < 0) return [];
-  return rows.slice(headerIdx + 2).map((c) => ({ item: c[0], description: c[1], partNumber: c[2] }));
+  return rows.slice(headerIdx + 2).map((c) => ({ item: c[0].replace(/\s+/g, ""), description: c[1], partNumber: c[2] }));
 })();
+function lbShearItem(item) {
+  const row = LB_SHEAR_BONNET_10K.find((r) => r.item === item);
+  if (!row) throw new Error(`Large-bore shear bonnet item ${item} missing`);
+  return row;
+}
+var LB_SHEAR_ASSEMBLIES = {
+  right: LB_SHEAR_BONNET_10K.find((r) => r.description === "Bonnet Assembly (Right)")?.partNumber ?? null,
+  left: LB_SHEAR_BONNET_10K.find((r) => r.description === "Bonnet Assembly (Left)")?.partNumber ?? null
+};
+var TANDEM_BOOSTER_ITEMS = rowsOf("tandemBoosterComposite").filter((c) => /^\d+$/.test(c[0])).map((c) => ({ item: Number(c[0]), description: c[1], qtyPerAssembly: c[2], partNumber: isPn(c[3]) ? c[3] : null }));
+var TANDEM_BOOSTER_REPAIR_KIT = rowsOf("tandemBoosterComposite").find((c) => c[1] === "Repair Kits")?.[3] ?? null;
+
+// src/geometry/params.ts
+var PAT = { sourceId: "SRC-PAT", locator: "rows 4, 7, 8, 23" };
+var CAT8 = { sourceId: "SRC-CAM-CAT-2014", page: 8 };
+var T3 = (id, label, value, rationale) => ({
+  id,
+  label,
+  value,
+  unit: "in",
+  tier: "T3",
+  sources: [],
+  rationale
+});
+var ratio = (text) => Number(text.split(":")[0]);
+var PARAMS = {
+  boreDiameter: {
+    id: "boreDiameter",
+    label: "Vertical bore diameter",
+    value: 13.625,
+    unit: "in",
+    tier: "T2",
+    sources: [CAT8, { sourceId: "SRC-QT", locator: "Vertical Bore: 13.625 in" }],
+    rationale: 'Nominal bore size of the 13-5/8" BOP.'
+  },
+  overallHeightDouble: {
+    id: "overallHeightDouble",
+    label: "Overall height, double, flanged",
+    value: 66.625,
+    unit: "in",
+    tier: "T2",
+    sources: [PAT, { sourceId: "SRC-QT", locator: "Height: 66.630 in" }],
+    rationale: "Third-party rental data sheet (SRC-QT prints 66.630 in)."
+  },
+  lengthClosedLocked: {
+    id: "lengthClosedLocked",
+    label: "Overall length, bonnets closed, locking screws locked",
+    value: 114.125,
+    unit: "in",
+    tier: "T2",
+    sources: [PAT, { sourceId: "SRC-QT", locator: "Closed & Locked: 115.66 in" }],
+    rationale: "Third-party rental data sheet; SRC-QT prints 115.66 in."
+  },
+  lengthOpenUnlocked: {
+    id: "lengthOpenUnlocked",
+    label: "Overall length, bonnets opened, locking screws unlocked",
+    value: 172.75,
+    unit: "in",
+    tier: "T2",
+    sources: [PAT, { sourceId: "SRC-QT", locator: "Open & Unlocked: 175.54 in" }],
+    rationale: "Third-party rental data sheet; SRC-QT prints 175.54 in."
+  },
+  flangeStudDiameter: {
+    id: "flangeStudDiameter",
+    label: '13-5/8" 10K flange stud diameter',
+    value: 1.875,
+    unit: "in",
+    tier: "T2",
+    sources: [{ sourceId: "SRC-PAT", locator: 'row 23: 1-7/8" x 17-3/4", 20 per flange' }],
+    rationale: "Rig-up hardware from the rental data sheet. Studs are drawn shortened."
+  },
+  bodyHalfWidth: T3("bodyHalfWidth", "Body half-width along bonnet axis", 18, "No public value; sized so bonnets fit the documented overall length."),
+  bodyDepth: T3("bodyDepth", "Ram cavity housing depth (front to back)", 24, "No public value. Arrangement of column and housings follows the 3D view on catalog p.9."),
+  columnRadius: T3("columnRadius", "Body column outer radius", 13.5, "No public value."),
+  housingHeight: T3("housingHeight", "Ram cavity housing height", 20, "No public value."),
+  bodyBlockHeightDouble: T3("bodyBlockHeightDouble", "Body block height, double", 50, "No public value; flanges and necks fill the rest of the documented height."),
+  bodyBlockHeightSingle: T3("bodyBlockHeightSingle", "Body block height, single", 28, "No public value; no public overall height for a single was found."),
+  flangeOuterDiameter: T3("flangeOuterDiameter", "Top/bottom flange outer diameter", 30, "No public value."),
+  flangeThickness: T3("flangeThickness", "Top/bottom flange thickness", 4.5, "No public value."),
+  cavityOffset: T3("cavityOffset", "Ram cavity centre offset from body centre (double)", 11, "No public value."),
+  ramDepth: T3("ramDepth", "Ram block depth along bonnet axis", 10, "No public value."),
+  ramHeight: T3("ramHeight", "Ram block height", 7, "No public value (dimension G is defined on p.8 but its chart is missing)."),
+  ramWidth: T3("ramWidth", "Ram block width", 16, "No public value."),
+  ramStroke: T3("ramStroke", "Ram stroke (open to closed)", 8, "No public value; chosen so an open ram clears the documented bore."),
+  bonnetLength: T3("bonnetLength", "Bonnet length", 10, "No public value."),
+  bonnetHeight: T3("bonnetHeight", "Bonnet height", 19, "No public value."),
+  bonnetWidth: T3("bonnetWidth", "Bonnet width", 22, "No public value."),
+  intFlangeLength: T3("intFlangeLength", "Intermediate flange length", 3, "No public value."),
+  opCylinderLength: T3("opCylinderLength", "Operating cylinder length", 12, "No public value."),
+  opCylinderRadius: T3("opCylinderRadius", "Operating cylinder outer radius", 6.5, "No public value."),
+  pistonThickness: T3("pistonThickness", "Operating piston head thickness", 3, "No public value."),
+  rodRadius: T3("rodRadius", "Connecting rod radius", 2.2, "No public value."),
+  tailRodRadius: T3("tailRodRadius", "Tail rod radius", 1.8, "No public value."),
+  lockHousingLength: T3("lockHousingLength", "Locking screw housing length", 5, "No public value."),
+  lockTravel: T3("lockTravel", "Locking screw travel (locked to unlocked)", 9, "No public value. The catalog documents 32 turns per end (p.7) but not the thread pitch."),
+  rcCylinderRadius: T3("rcCylinderRadius", "Ram-change cylinder radius", 1.8, "No public value."),
+  lbCylinderRadius: T3(
+    "lbCylinderRadius",
+    "Large-bore shear bonnet operating cylinder outer radius",
+    6.5 * Math.sqrt(ratio(LB_OPERATING_DATA.closingRatio) / ratio(OPERATING_DATA.closingRatio)),
+    `No public value. Scaled from the standard cylinder by the square root of the documented closing ratios (${LB_OPERATING_DATA.closingRatio} large bore vs ${OPERATING_DATA.closingRatio} standard, catalog p.7), assuming the same connecting rod.`
+  ),
+  boosterLength: T3("boosterLength", "Tandem booster length (head, cylinder and adapter plate)", 16, "No public value. Sized to hold a piston stroke equal to the operating piston stroke (catalog p.20).")
+};
+var P = Object.fromEntries(Object.entries(PARAMS).map(([k, v]) => [k, v.value]));
+var S = (() => {
+  const bonnetEnd = P.bonnetLength;
+  const intEnd = bonnetEnd + P.intFlangeLength;
+  const cylEnd = intEnd + P.opCylinderLength;
+  const housingEnd = cylEnd + P.lockHousingLength;
+  const halfLengthLocked = P.lengthClosedLocked / 2;
+  const screwEnd = halfLengthLocked - P.bodyHalfWidth;
+  const pistonFace = intEnd + 1;
+  const pistonBack = pistonFace + P.pistonThickness;
+  const ramFront = -P.bodyHalfWidth;
+  const ramBack = ramFront + P.ramDepth;
+  const tailEnd = housingEnd - 2;
+  return { bonnetEnd, intEnd, cylEnd, housingEnd, screwEnd, pistonFace, pistonBack, ramFront, ramBack, tailEnd };
+})();
+var BONNET_TRAVEL = P.lengthOpenUnlocked / 2 - P.bodyHalfWidth - (S.screwEnd + P.lockTravel);
+function cavityCentres(stack) {
+  return stack === "double" ? { upper: P.cavityOffset, lower: -P.cavityOffset } : { upper: 0 };
+}
+function bodyBlockHeight(stack) {
+  return stack === "double" ? P.bodyBlockHeightDouble : P.bodyBlockHeightSingle;
+}
+function overallHeight(stack) {
+  return stack === "double" ? { value: P.overallHeightDouble, tier: "T2" } : { value: P.bodyBlockHeightSingle + 2 * (P.flangeThickness + 3), tier: "T3" };
+}
+
+// src/geometry/frame.ts
+function worldX(f, s) {
+  return f.sign * (P.bodyHalfWidth + s);
+}
+function alongS(f, shape, s0, s1, y, z2, material) {
+  return { shape, position: [worldX(f, (s0 + s1) / 2), f.cavityY + y, z2], axis: "x", material };
+}
+function cylS(f, r, s0, s1, y, z2, material, rInner) {
+  return alongS(f, { kind: "cyl", r, len: Math.abs(s1 - s0), rInner }, s0, s1, y, z2, material);
+}
+function ringS(f, major, tube, s, y = 0, z2 = 0, material = "softgood", scaleY) {
+  return { shape: { kind: "torus", major, tube, scaleY }, position: [worldX(f, s), f.cavityY + y, z2], axis: "x", material };
+}
+function boxS(f, len, h, w, s0, y, z2, material) {
+  return { shape: { kind: "box", size: [len, h, w] }, position: [worldX(f, s0 + len / 2), f.cavityY + y, z2], axis: "x", material };
+}
+function hexS(f, across, len, s0, y, z2, material = "fastener") {
+  return alongS(f, { kind: "hex", across, len }, s0, s0 + len, y, z2, material);
+}
+function ellipsePoints(n, ry, rz, phase = 0) {
+  return Array.from({ length: n }, (_, i) => {
+    const a = phase + i / n * Math.PI * 2;
+    return [Math.sin(a) * ry, Math.cos(a) * rz];
+  });
+}
+function latheS(f, profile, material, y = 0, z2 = 0) {
+  return {
+    shape: { kind: "lathe", profile },
+    position: [worldX(f, 0), f.cavityY + y, z2],
+    axis: "x",
+    rotation: [0, 0, f.sign > 0 ? -Math.PI / 2 : Math.PI / 2],
+    material
+  };
+}
+function plateS(f, outline, s0, thickness, material, holes = [], y = 0, bevel = 0.3) {
+  return { shape: { kind: "plate", outline, thickness, holes, bevel }, position: [worldX(f, s0 + thickness / 2), f.cavityY + y, 0], axis: "x", material };
+}
+function rodS(f, r, s0, s1, material, y = 0, z2 = 0) {
+  const c = Math.min(r * 0.25, 0.2);
+  return latheS(f, [[0, s0], [r - c, s0], [r, s0 + c], [r, s1 - c], [r - c, s1], [0, s1]], material, y, z2);
+}
+function threadS(f, r, s0, s1, pitch, material, y = 0, z2 = 0) {
+  const pts = [[0, s0], [r * 0.86, s0]];
+  for (let s = s0; s + pitch <= s1; s += pitch) {
+    pts.push([r, s + pitch * 0.5], [r * 0.86, s + pitch]);
+  }
+  pts.push([0, pts[pts.length - 1][1]]);
+  return latheS(f, pts, material, y, z2);
+}
+function hexHeadS(f, across, s0, len, y, z2, material = "fastener") {
+  return [
+    cylS(f, across * 0.55, s0, s0 + len * 0.18, y, z2, material),
+    alongS(f, { kind: "hex", across, len: len * 0.82 }, s0 + len * 0.18, s0 + len, y, z2, material)
+  ];
+}
+
+// src/geometry/body-geometry.ts
+var boreR = () => P.boreDiameter / 2;
+var FLANGE_BOLT_CIRCLE = 13;
+var FLANGE_HOLE_R = 1.05;
+function flangeStations(stack) {
+  const top = overallHeight(stack).value / 2;
+  const flangeBottom = top - P.flangeThickness;
+  const blockTop = bodyBlockHeight(stack) / 2;
+  return { top, flangeBottom, blockTop };
+}
+function cavityY(stack, cavity) {
+  const c = cavityCentres(stack);
+  return cavity === "upper" ? c.upper : c.lower ?? 0;
+}
+function latheY(profile, material, flipDown = false) {
+  return { shape: { kind: "lathe", profile, segments: 72 }, position: [0, 0, 0], axis: "y", material, rotation: flipDown ? [Math.PI, 0, 0] : [0, 0, 0] };
+}
+function bodyGeometry(stack) {
+  const { top, flangeBottom, blockTop } = flangeStations(stack);
+  const b = boreR();
+  const R = P.columnRadius;
+  const meshes = [
+    // Column with the vertical bore.
+    latheY([[b, -blockTop], [R - 0.6, -blockTop], [R, -blockTop + 0.6], [R, blockTop - 0.6], [R - 0.6, blockTop], [b, blockTop], [b, -blockTop]], "structure")
+  ];
+  const cavities = stack === "double" ? ["upper", "lower"] : ["upper"];
+  for (const cav of cavities) {
+    meshes.push({
+      shape: { kind: "plate", outline: { type: "roundRect", w: 2 * P.bodyHalfWidth, h: P.bodyDepth, r: 3.5 }, thickness: P.housingHeight, holes: [{ x: 0, y: 0, r: b }], bevel: 0.8 },
+      position: [0, cavityY(stack, cav), 0],
+      axis: "y",
+      material: "structure"
+    });
+  }
+  for (const down of [false, true]) {
+    meshes.push(
+      latheY([[b, blockTop - 0.1], [R - 1, blockTop - 0.1], [11.2, flangeBottom - 1.2], [11.6, flangeBottom], [b, flangeBottom], [b, blockTop - 0.1]], "structure", down),
+      {
+        shape: {
+          kind: "plate",
+          outline: { type: "circle", r: P.flangeOuterDiameter / 2 },
+          thickness: P.flangeThickness,
+          holes: [{ x: 0, y: 0, r: b }, ...ellipsePoints(20, FLANGE_BOLT_CIRCLE, FLANGE_BOLT_CIRCLE).map(([u, v]) => ({ x: u, y: v, r: FLANGE_HOLE_R }))],
+          bevel: 0.35
+        },
+        position: [0, (down ? -1 : 1) * (top - P.flangeThickness / 2), 0],
+        axis: "y",
+        material: "structure"
+      },
+      // Raised face with ring groove (visual only; BX-159 gasket per SRC-PAT).
+      latheY([[b, top - 0.01], [10.2, top - 0.01], [10.2, top + 0.25], [8.9, top + 0.25], [8.9, top + 0.05], [8.3, top + 0.05], [8.3, top + 0.25], [b, top + 0.25]], "moving", down)
+    );
+  }
+  return { meshes, kinematic: "fixed", explode: [0, 0, 0] };
+}
+function outletY(stack, cavity) {
+  return cavityY(stack, cavity) - 7.5;
+}
+function outletGeometry(stack, cavity, front) {
+  const y = outletY(stack, cavity);
+  const dir = front ? 1 : -1;
+  const z0 = P.bodyDepth / 2 - 0.5;
+  const bore = 2.03;
+  const rot = [dir * Math.PI / 2, 0, 0];
+  const hub = {
+    shape: { kind: "lathe", profile: [[bore, 0], [3.4, 0], [3.4, 3.2], [3, 3.6], [bore, 3.6], [bore, 0]] },
+    position: [0, y, dir * z0],
+    axis: "z",
+    material: "structure",
+    rotation: rot
+  };
+  const flangeZ = z0 + 3.6 + 0.8;
+  const flange = {
+    shape: { kind: "plate", outline: { type: "circle", r: 5.3 }, thickness: 1.6, holes: [{ x: 0, y: 0, r: bore }, ...ellipsePoints(8, 4.1, 4.1, Math.PI / 8).map(([u, v]) => ({ x: u, y: v, r: 0.62 }))], bevel: 0.2 },
+    position: [0, y, dir * flangeZ],
+    axis: "z",
+    material: "structure"
+  };
+  const studs = ellipsePoints(8, 4.1, 4.1, Math.PI / 8).flatMap(([u, v]) => [
+    { shape: { kind: "cyl", r: 0.5625, len: 3.2, sides: 16 }, position: [u, y + v, dir * (flangeZ + 0.8)], axis: "z", material: "fastener" },
+    { shape: { kind: "hex", across: 1.8, len: 0.9 }, position: [u, y + v, dir * (flangeZ - 1.25)], axis: "z", material: "fastener" }
+  ]);
+  return { meshes: [hub, flange, ...studs], kinematic: "fixed", explode: [0, 0, dir * 10] };
+}
+function flangeStudGeometry(stack, topFlange) {
+  const { top, flangeBottom } = flangeStations(stack);
+  const dir = topFlange ? 1 : -1;
+  const y0 = flangeBottom - 1.4;
+  const y1 = top + 3;
+  const r = P.flangeStudDiameter / 2;
+  const meshes = ellipsePoints(20, FLANGE_BOLT_CIRCLE, FLANGE_BOLT_CIRCLE).flatMap(([a, b]) => [
+    { shape: { kind: "cyl", r, len: y1 - y0, sides: 16 }, position: [a, dir * ((y0 + y1) / 2), b], axis: "y", material: "fastener" },
+    { shape: { kind: "hex", across: 2.9, len: 1.2 }, position: [a, dir * (flangeBottom - 0.7), b], axis: "y", material: "fastener" }
+  ]);
+  return { meshes, kinematic: "fixed", explode: [0, dir * 14, 0] };
+}
+function portGeometry(stack, cavity, index) {
+  const x = index === 0 ? -15 : 15;
+  const z2 = P.bodyDepth / 2;
+  return {
+    meshes: [
+      { shape: { kind: "cyl", r: 1.2, len: 0.6, sides: 32 }, position: [x, cavityY(stack, cavity) + 4, z2 + 0.3], axis: "z", material: "fitting" },
+      { shape: { kind: "hex", across: 1.8, len: 1.1 }, position: [x, cavityY(stack, cavity) + 4, z2 + 1.1], axis: "z", material: "fitting" }
+    ],
+    kinematic: "fixed",
+    explode: [0, 0, 6]
+  };
+}
+
+// src/geometry/bonnet-geometry.ts
+var FLANGE_LEN = 4;
+var RC_R = P.rcCylinderRadius - 0.2;
+var RC_HEAD_S = S.cylEnd - 1;
+var RC_ROD_R = 0.8;
+var RC_END = S.housingEnd - 2.5;
+function bonnetDims(type) {
+  const grow = type === "largeBoreShear" ? P.lbCylinderRadius - P.opCylinderRadius : 0;
+  return {
+    cylR: P.opCylinderRadius + grow,
+    pistonR: 6.1 + grow,
+    collarR: 8.2 + grow,
+    studR: 7.2 + grow,
+    rcZ: 8.4 + grow,
+    flange: { type: "roundRect", w: 24 + 2 * grow, h: 21, r: 3 },
+    // The body section is lower than the flange so the bonnet bolt heads sit on the step (as drawn on p.9).
+    body: { type: "roundRect", w: 21 + 2 * grow, h: 15, r: 3 },
+    intFlange: { type: "octagon", w: 23 + 2 * grow, h: 19, chamfer: 4.5 },
+    lockShift: type === "tandemBooster" ? P.boosterLength : 0
+  };
+}
+var STANDARD_DIMS = bonnetDims("standard");
+var BOLT_Y = 9;
+var BOLT_POS = [[BOLT_Y, 8.2], [BOLT_Y, -8.2], [-BOLT_Y, 8.2], [-BOLT_Y, -8.2]];
+var CAP_POS = [20, 48, 76, 104, 132, 160].flatMap((deg) => {
+  const a = deg * Math.PI / 180;
+  return [
+    [7.4 * Math.sin(a), 9.4 * Math.cos(a)],
+    [-7.4 * Math.sin(a), 9.4 * Math.cos(a)]
+  ];
+});
+function atY(f, s, y, z2, shape, material) {
+  return { shape, position: [worldX(f, s), f.cavityY + y, z2], axis: "y", material };
+}
+function pistonProfile(r) {
+  const a = S.ramBack;
+  const face = S.pistonFace;
+  const back = S.pistonBack;
+  return [
+    [0, a],
+    [P.rodRadius - 0.2, a],
+    [P.rodRadius, a + 0.2],
+    [P.rodRadius, face - 0.4],
+    [P.rodRadius + 0.5, face],
+    [r - 0.1, face],
+    [r, face + 0.1],
+    [r, face + 0.9],
+    [r - 0.35, face + 0.9],
+    [r - 0.35, face + 1.25],
+    [r, face + 1.25],
+    [r, back - 0.1],
+    [r - 0.1, back],
+    [P.tailRodRadius + 0.4, back],
+    [P.tailRodRadius, back + 0.4],
+    [P.tailRodRadius, S.tailEnd - 0.2],
+    [P.tailRodRadius - 0.2, S.tailEnd],
+    [0, S.tailEnd]
+  ];
+}
+function bonnetItemGeometry(item, f, withLiftingEye, d = STANDARD_DIMS) {
+  const rcZ = [d.rcZ, -d.rcZ];
+  const topBody = d.body.h / 2;
+  const studPos = ellipsePoints(8, d.studR, d.studR, Math.PI / 8);
+  const lockAt = S.cylEnd + d.lockShift;
+  const housingEnd = S.housingEnd + d.lockShift;
+  const tailEnd = S.tailEnd + d.lockShift;
+  const screwEnd = S.screwEnd + d.lockShift;
+  const lockStudPos = d.lockShift ? ellipsePoints(8, STANDARD_DIMS.studR, STANDARD_DIMS.studR, Math.PI / 8) : studPos;
+  switch (item) {
+    case 2:
+      return {
+        meshes: [plateS(f, d.intFlange, S.bonnetEnd, P.intFlangeLength, "structureAlt", [{ x: 0, y: 0, r: P.rodRadius + 0.3 }, { x: d.rcZ, y: 0, r: RC_R + 0.05 }, { x: -d.rcZ, y: 0, r: RC_R + 0.05 }], 0, 0.45)],
+        kinematic: "bonnet",
+        explode: [16, 0, 0]
+      };
+    case 3:
+      return {
+        meshes: [
+          plateS(f, d.flange, 0, FLANGE_LEN, "structure", [], 0, 0.6),
+          plateS(f, d.body, FLANGE_LEN - 0.3, S.bonnetEnd - FLANGE_LEN + 0.3, "structure", [], 0, 0.6)
+        ],
+        kinematic: "bonnet",
+        explode: [8, 0, 0]
+      };
+    case 5:
+      return { meshes: [latheS(f, pistonProfile(d.pistonR), "moving")], kinematic: "ram", explode: [22, 16, 0] };
+    case 6:
+      return {
+        meshes: [
+          latheS(f, [
+            [d.pistonR - 0.1, S.intEnd],
+            [d.cylR + 0.35, S.intEnd],
+            [d.cylR + 0.35, S.intEnd + 0.7],
+            [d.cylR, S.intEnd + 0.9],
+            [d.cylR, S.cylEnd - 1.6],
+            [d.collarR - 0.2, S.cylEnd - 1.4],
+            [d.collarR, S.cylEnd - 1.2],
+            [d.collarR, S.cylEnd],
+            [d.pistonR - 0.1, S.cylEnd],
+            [d.pistonR - 0.1, S.intEnd]
+          ], "structure")
+        ],
+        kinematic: "bonnet",
+        explode: [30, 0, 0]
+      };
+    case 7:
+      return {
+        meshes: [
+          plateS(f, { type: "circle", r: d.lockShift ? STANDARD_DIMS.collarR : d.collarR }, lockAt, 1.5, "structureAlt", [{ x: 0, y: 0, r: 1.7 }, ...lockStudPos.map(([y, z2]) => ({ x: z2, y, r: 0.5 }))], 0, 0.25),
+          latheS(f, [[1.7, lockAt + 1.4], [4.6, lockAt + 1.4], [4.6, lockAt + 2.1], [4.2, lockAt + 2.4], [4.2, housingEnd - 0.4], [3.8, housingEnd], [1.7, housingEnd], [1.7, lockAt + 1.4]], "structureAlt")
+        ],
+        kinematic: "bonnet",
+        explode: [40, 0, 0]
+      };
+    case 8:
+      return {
+        meshes: [
+          threadS(f, 1.5, tailEnd, screwEnd - 2.2, 0.35, "moving"),
+          rodS(f, 1.1, screwEnd - 2.3, screwEnd - 1.5, "moving"),
+          boxS(f, 1.5, 1.35, 1.35, screwEnd - 1.5, 0, 0, "moving")
+        ],
+        kinematic: "lock",
+        explode: [52, 0, 0],
+        spin: true
+      };
+    case 9:
+    case 10: {
+      const z2 = item === 9 ? d.rcZ : -d.rcZ;
+      return {
+        meshes: [
+          rodS(f, RC_ROD_R, -4, RC_HEAD_S, "moving", 0, z2),
+          latheS(f, [[0, RC_HEAD_S], [1.4, RC_HEAD_S], [1.5, RC_HEAD_S + 0.1], [1.5, RC_HEAD_S + 0.3], [1.35, RC_HEAD_S + 0.3], [1.35, RC_HEAD_S + 0.6], [1.5, RC_HEAD_S + 0.6], [1.5, RC_HEAD_S + 0.9], [1.4, RC_HEAD_S + 1], [0, RC_HEAD_S + 1]], "moving", 0, z2)
+        ],
+        kinematic: "fixed",
+        explode: [2, 0, item === 9 ? 6 : -6]
+      };
+    }
+    case 11:
+      return {
+        meshes: rcZ.flatMap((z2) => [
+          latheS(f, [[RC_R - 0.15, 1], [RC_R, 1], [RC_R, RC_END - 0.8], [RC_R - 0.3, RC_END - 0.3], [RC_R - 0.9, RC_END], [0, RC_END + 0.05]], "structureAlt", 0, z2),
+          alongS(f, { kind: "hex", across: 2 * RC_R + 0.7, len: 0.9 }, S.intEnd + 0.15, S.intEnd + 1.05, 0, z2, "structureAlt")
+        ]),
+        kinematic: "bonnet",
+        explode: [14, 0, 0]
+      };
+    case 12:
+      return {
+        meshes: BOLT_POS.flatMap(([y, z2]) => [rodS(f, 0.9, -7, FLANGE_LEN, "fastener", y, z2), ...hexHeadS(f, 2.4, FLANGE_LEN, 1.9, y, z2)]),
+        kinematic: "bolt",
+        explode: [12, 0, 0]
+      };
+    case 13:
+      return { meshes: lockStudPos.map(([y, z2]) => threadS(f, 0.45, lockAt - 1.3, lockAt + 2.5, 0.18, "fastener", y, z2)), kinematic: "bonnet", explode: [26, 0, 0] };
+    case 14:
+      return { meshes: lockStudPos.map(([y, z2]) => hexS(f, 1.15, 0.8, lockAt + 1.5, y, z2)), kinematic: "bonnet", explode: [44, 0, 0] };
+    case 15:
+      return { meshes: [atY(f, S.bonnetEnd + 1.5, d.intFlange.h / 2 + 0.4, -3, { kind: "cyl", r: 0.55, len: 0.9, sides: 24 }, "fitting"), atY(f, S.bonnetEnd + 1.5, d.intFlange.h / 2 + 1.1, -3, { kind: "hex", across: 1, len: 0.5 }, "fitting")], kinematic: "bonnet", explode: [8, 8, 0] };
+    case 16:
+      return { meshes: [atY(f, S.bonnetEnd + 1.5, d.intFlange.h / 2 + 0.35, 0, { kind: "hex", across: 0.9, len: 0.7 }, "fastener")], kinematic: "bonnet", explode: [8, 10, 0] };
+    case 17:
+      return { meshes: [atY(f, S.bonnetEnd + 1.5, d.intFlange.h / 2 + 0.3, 3, { kind: "cyl", r: 0.45, len: 0.6, sides: 4 }, "fitting")], kinematic: "bonnet", explode: [8, 12, 0] };
+    case 18:
+      return { meshes: [ringS(f, 2.5, 0.35, 5)], kinematic: "bonnet", explode: [6, 16, 0] };
+    case 19:
+      return { meshes: [ringS(f, 2.5, 0.3, 5.8)], kinematic: "bonnet", explode: [6, 19, 0] };
+    case 20:
+      return { meshes: [ringS(f, 2.55, 0.4, 3)], kinematic: "bonnet", explode: [6, 10, 0] };
+    case 21:
+      return { meshes: [2.3, 3.7].map((s) => cylS(f, 2.9, s - 0.12, s + 0.12, 0, 0, "softgood", 2.25)), kinematic: "bonnet", explode: [6, 13, 0] };
+    case 22:
+      return { meshes: [ringS(f, 8, 0.35, 0.15, 0, 0, "softgood", 0.72)], kinematic: "bonnet", explode: [3, 0, 0] };
+    case 23:
+      return { meshes: [6, -6].map((z2) => rodS(f, 0.5, -1.5, 1, "fastener", -3.8, z2)), kinematic: "bonnet", explode: [5, 0, 0] };
+    case 24:
+      return { meshes: [S.intEnd + 0.35, S.cylEnd - 0.2].map((s) => ringS(f, d.cylR - 0.25, 0.22, s)), kinematic: "bonnet", explode: [26, 12, 0] };
+    case 25:
+      return { meshes: [ringS(f, 2.5, 0.3, S.bonnetEnd + 1.5)], kinematic: "bonnet", explode: [16, 10, 0] };
+    case 26:
+      return { meshes: [ringS(f, d.pistonR - 0.15, 0.24, S.pistonFace + 1.07)], kinematic: "ram", explode: [22, 22, 0] };
+    case 27:
+      return { meshes: [ringS(f, 2.1, 0.3, lockAt + 2)], kinematic: "bonnet", explode: [36, 10, 0] };
+    case 28:
+      return { meshes: [ringS(f, 2, 0.2, housingEnd - 0.3)], kinematic: "bonnet", explode: [36, 13, 0] };
+    case 29:
+      return { meshes: rcZ.map((z2) => ringS(f, 1.05, 0.2, -0.5, 0, z2)), kinematic: "fixed", explode: [0, 8, 0] };
+    case 30:
+      return { meshes: rcZ.map((z2) => ringS(f, 1.05, 0.2, S.bonnetEnd + 1.5, 0, z2)), kinematic: "bonnet", explode: [16, 8, 0] };
+    case 31:
+      return { meshes: rcZ.map((z2) => ringS(f, RC_R + 0.1, 0.18, S.intEnd - 0.1, 0, z2)), kinematic: "bonnet", explode: [16, 11, 0] };
+    case 32:
+      return { meshes: rcZ.map((z2) => ringS(f, RC_R + 0.1, 0.18, 1.3, 0, z2)), kinematic: "bonnet", explode: [8, 11, 0] };
+    case 33:
+      return { meshes: rcZ.map((z2) => ringS(f, 1.4, 0.16, RC_HEAD_S + 0.45, 0, z2)), kinematic: "fixed", explode: [2, 8, 0] };
+    case 34:
+      return { meshes: BOLT_POS.map(([y, z2]) => ringS(f, 1, 0.18, FLANGE_LEN - 0.3, y, z2)), kinematic: "bolt", explode: [10, 6, 0] };
+    case 35:
+      return { meshes: CAP_POS.flatMap(([y, z2]) => hexHeadS(f, 1.05, S.intEnd, 0.75, y, z2 * (d.intFlange.w / STANDARD_DIMS.intFlange.w))), kinematic: "bonnet", explode: [20, 0, 0] };
+    case 36:
+      return { meshes: [atY(f, 7.2, topBody + 0.4, 4.5, { kind: "hex", across: 1, len: 0.8 }, "fitting")], kinematic: "bonnet", explode: [8, 10, 0] };
+    case 37:
+      return { meshes: [atY(f, 7.2, topBody + 1.1, 4.5, { kind: "cyl", r: 0.35, len: 0.6, sides: 24 }, "fitting")], kinematic: "bonnet", explode: [8, 13, 0] };
+    case 38:
+      if (!withLiftingEye) return null;
+      return {
+        meshes: [
+          { shape: { kind: "torus", major: 1.2, tube: 0.32 }, position: [worldX(f, 7.2), f.cavityY + topBody + 2.2, -3], axis: "z", material: "fastener" },
+          atY(f, 7.2, topBody + 0.5, -3, { kind: "cyl", r: 0.9, len: 0.5, sides: 24 }, "fastener")
+        ],
+        kinematic: "bonnet",
+        explode: [5, 8, 0]
+      };
+    case 40:
+      return { meshes: [cylS(f, 3, 6.45, 6.75, 0, 0, "fastener", 2.25)], kinematic: "bonnet", explode: [6, 22, 0] };
+    case 41:
+      return { meshes: [ringS(f, 2.6, 0.2, 7.1, 0, 0, "fastener")], kinematic: "bonnet", explode: [6, 25, 0] };
+    case 42:
+      return { meshes: [cylS(f, d.pistonR + 0.04, S.pistonFace + 0.15, S.pistonFace + 0.85, 0, 0, "softgood", d.pistonR - 0.15)], kinematic: "ram", explode: [22, 26, 0] };
+    default:
+      return null;
+  }
+}
+var ITEMS_WITHOUT_GEOMETRY = {
+  39: "Not drawn on the manufacturer exploded view (SD17500), so no geometry is shown.",
+  43: 'Not drawn on SD17500 and the catalog quantity is "--", so no geometry is shown.'
+};
+function lbLipOringGeometry(f, d) {
+  return { meshes: [ringS(f, d.cylR - 0.6, 0.24, S.bonnetEnd - 0.05)], kinematic: "bonnet", explode: [16, 14, 0] };
+}
+
+// src/geometry/explode-layout.ts
+var ROW_1 = 15;
+var ROW_2 = 20;
+var ROW_PISTON = 26;
+var ROW_PISTON_SEALS = 34;
+var CHAIN = {
+  ram: 0,
+  bonnet: 8,
+  intFlange: 16,
+  cylinder: 26,
+  housing: 38,
+  screw: 48
+};
+var BONNET_LAYOUT = {
+  // Main chain
+  3: [CHAIN.bonnet, 0, 0],
+  2: [CHAIN.intFlange, 0, 0],
+  6: [CHAIN.cylinder, 0, 0],
+  11: [CHAIN.cylinder, 0, 0],
+  7: [CHAIN.housing, 0, 0],
+  8: [CHAIN.screw, 0, 0],
+  // Piston lifts above the line so its rod clears the bonnet and cylinder.
+  5: [10, ROW_PISTON, 0],
+  26: [10, ROW_PISTON_SEALS, 0],
+  42: [13, ROW_PISTON_SEALS, 0],
+  // Ram-change pistons move sideways out of their cylinders.
+  9: [2, 0, 12],
+  10: [2, 0, -12],
+  33: [2, ROW_1, 0],
+  // Fasteners pull straight out of their holes.
+  // Bolts stop just clear of the bonnet flange, before the intermediate flange.
+  12: [19, 0, 0],
+  34: [20, 0, 0],
+  35: [CHAIN.intFlange + 5, 0, 0],
+  13: [32, 0, 0],
+  14: [CHAIN.screw, 0, 0],
+  23: [-4, 0, 0],
+  // Bonnet face seal floats between the ram and the bonnet.
+  22: [3, 0, 0],
+  // Connecting-rod seal stack: one row above the bonnet, in assembly order.
+  21: [2, ROW_1, 0],
+  20: [6, ROW_1, 0],
+  18: [8, ROW_1, 0],
+  19: [10, ROW_1, 0],
+  40: [12, ROW_1, 0],
+  41: [14, ROW_1, 0],
+  // Intermediate-flange and cylinder seals: same row, further out.
+  25: [22, ROW_1, 0],
+  24: [CHAIN.cylinder, ROW_1, 0],
+  // Ram-change seals: second row.
+  29: [6, ROW_2, 0],
+  32: [6, ROW_2, 0],
+  30: [22, ROW_2, 0],
+  31: [24, ROW_2, 0],
+  // Tail-rod seals above the lock housing.
+  27: [CHAIN.housing, ROW_1, 0],
+  28: [CHAIN.housing, ROW_1, 0],
+  // Small fittings lift off their parent part.
+  15: [CHAIN.intFlange, 4, 0],
+  16: [CHAIN.intFlange, 4, 0],
+  17: [CHAIN.intFlange, 4, 0],
+  36: [CHAIN.bonnet, 3, 0],
+  37: [CHAIN.bonnet, 5, 0],
+  38: [CHAIN.bonnet, 6, 0]
+};
+var BOOSTER_CHAIN_OVERRIDES = {
+  7: [54, 0, 0],
+  8: [60, 0, 0],
+  13: [50, 0, 0],
+  14: [59, 0, 0],
+  27: [54, ROW_1, 0],
+  28: [56, ROW_1, 0]
+};
+var BOOSTER_LAYOUT = {
+  4: [30, 0, 0],
+  8: [34, 0, 0],
+  9: [30, ROW_1, 0],
+  10: [32, ROW_1, 0],
+  3: [39, 0, 0],
+  11: [40, ROW_1, 0],
+  16: [39, 5, 0],
+  6: [40, ROW_PISTON, 0],
+  5: [40, ROW_PISTON, 0],
+  12: [40, ROW_PISTON_SEALS, 0],
+  13: [42, ROW_PISTON_SEALS, 0],
+  1: [43, 0, 0],
+  2: [43, 4, 0],
+  14: [44, ROW_1, 0],
+  15: [46, ROW_1, 0],
+  7: [47, 0, 0]
+};
+var BOOSTER_WORLD_UP = /* @__PURE__ */ new Set([2, 16]);
+var LB_LIP_ORING_LAYOUT = [18, ROW_1, 0];
+var WORLD_UP_ITEMS = /* @__PURE__ */ new Set([15, 16, 17, 36, 37, 38]);
+var WORLD_UP_RAM_PARTS = /* @__PURE__ */ new Set(["topSeal", "bladePacker", "bladeSeals"]);
+var RAM_LAYOUT = {
+  body: [CHAIN.ram, 0, 0],
+  packer: [-4, 0, 0],
+  topSeal: [CHAIN.ram, 6, 0],
+  bladePacker: [-3, 5, 0],
+  sidePackers: [-4, 0, 0],
+  bladeSeals: [-3, 7, 0]
+};
 
 // src/data/curation.ts
 var GROUP_NAMES = {
@@ -3634,14 +3743,24 @@ var OPERATING_SYSTEM_SEALS_NOTE = SLB_SEALS;
 // src/data/build-bonnet.ts
 var SIDE_NAME = { L: "left", R: "right" };
 var CAVITY_NAME = { upper: "upper", lower: "lower" };
+var BONNET_TYPE_LABEL = {
+  standard: "Standard bonnets",
+  largeBoreShear: "Large-bore shear bonnets",
+  tandemBooster: "Standard bonnets with tandem boosters"
+};
 function locationLabel(cavity, side, stack) {
   return stack === "double" ? `${CAVITY_NAME[cavity]} ${SIDE_NAME[side]}` : SIDE_NAME[side];
 }
 var DRAWN_TIER_NOTE = "Position and count follow exploded view SD17500 (catalog p.9). Shape and size are educational approximations.";
-function toWorldExplode(local, f, cavity, stack) {
-  const up = stack === "single" || cavity === "upper" ? 1 : -1;
+var LB_TIER_NOTE = "Large-bore shear bonnet: arrangement as SD17500 (p.9); the larger operating cylinder is scaled from the documented closing ratios (p.7). Sizes are educational approximations.";
+function toWorldExplode(local, f, cavity, stack, worldUp = false) {
+  const up = worldUp || stack === "single" || cavity === "upper" ? 1 : -1;
   return [f.sign * local[0], up * local[1], local[2]];
 }
+var HYDRAULIC_DIMENSIONS = [
+  { label: "Hydraulic operating pressure", claim: claim("1,500 psi (max 3,000 psi)", [{ sourceId: "SRC-PAT", locator: "rows 15-16" }, { sourceId: "SRC-QT" }], "C", "Not stated in the Cameron catalog.") },
+  { label: "Hydraulic connection size", claim: claim('1" NPT, two connections per set of rams', [cat(8)], "A") }
+];
 var OPERATING_DIMENSIONS = [
   { label: "Fluid to close, pipe rams (1 set)", claim: claim(`${OPERATING_DATA.galsToClose} gal`, [cat(7), { sourceId: "SRC-PAT", locator: "row 19: 5.8 gal" }, { sourceId: "SRC-QT", locator: "Gallons to Close 5.80" }], "A") },
   { label: "Fluid to open, pipe rams (1 set)", claim: claim(`${OPERATING_DATA.galsToOpen} gal`, [cat(7), { sourceId: "SRC-PAT", locator: "row 18: 5.5 gal" }], "A") },
@@ -3650,8 +3769,15 @@ var OPERATING_DIMENSIONS = [
     claim: { ...claim(OPERATING_DATA.closingRatio, [cat(7)], "A"), conflicts: [{ value: "6.80", sources: [{ sourceId: "SRC-QT", locator: "Close Ratio 6.80 (standard bonnets)" }] }] }
   },
   { label: "Opening ratio", claim: claim(OPERATING_DATA.openingRatio, [cat(7), { sourceId: "SRC-QT", locator: "Open Ratio 2.30" }], "A") },
-  { label: "Hydraulic operating pressure", claim: claim("1,500 psi (max 3,000 psi)", [{ sourceId: "SRC-PAT", locator: "rows 15-16" }, { sourceId: "SRC-QT" }], "C", "Not stated in the Cameron catalog.") },
-  { label: "Hydraulic connection size", claim: claim('1" NPT, two connections per set of rams', [cat(8)], "A") }
+  ...HYDRAULIC_DIMENSIONS
+];
+var LB_TABLE = 'Large Bore Shear Bonnet Operating Data, 13-5/8" Except 15,000 psi';
+var LB_OPERATING_DIMENSIONS = [
+  { label: "Fluid to close, pipe rams (1 set), large-bore shear bonnets", claim: claim(`${LB_OPERATING_DATA.galsToClose} gal`, [cat(7, void 0, LB_TABLE)], "A") },
+  { label: "Fluid to open, pipe rams (1 set), large-bore shear bonnets", claim: claim(`${LB_OPERATING_DATA.galsToOpen} gal`, [cat(7, void 0, LB_TABLE)], "A") },
+  { label: "Closing ratio, large-bore shear bonnets", claim: claim(LB_OPERATING_DATA.closingRatio, [cat(7, void 0, LB_TABLE)], "A") },
+  { label: "Opening ratio, large-bore shear bonnets", claim: claim(LB_OPERATING_DATA.openingRatio, [cat(7, void 0, LB_TABLE)], "A") },
+  ...HYDRAULIC_DIMENSIONS
 ];
 var BOLT_DIMENSIONS = [
   {
@@ -3663,56 +3789,406 @@ var BOLT_DIMENSIONS = [
   },
   { label: "Bonnet bolt wrench size", claim: claim('3-1/2" impact socket; 2-1/4" striking wrench', [{ sourceId: "SRC-PAT", locator: "rows 13-14" }], "C") }
 ];
-function extraDimensions(item) {
-  if (item === 5) return OPERATING_DIMENSIONS;
+function extraDimensions(item, type) {
+  const lb = type === "largeBoreShear";
+  if (item === 5) return lb ? LB_OPERATING_DIMENSIONS : OPERATING_DIMENSIONS;
   if (item === 12) return BOLT_DIMENSIONS;
-  if (item === 8) return [{ label: "Locking screw turns (each end)", claim: claim(OPERATING_DATA.lockingScrewTurns, [cat(7)], "A") }];
+  if (item === 8) return [{ label: "Locking screw turns (each end)", claim: claim((lb ? LB_OPERATING_DATA : OPERATING_DATA).lockingScrewTurns, [cat(7, void 0, lb ? LB_TABLE : void 0)], "A") }];
+  if (item === 3 && lb && LB_SHEAR_ASSEMBLIES.right && LB_SHEAR_ASSEMBLIES.left) {
+    return [{ label: "Shear bonnet assembly part numbers", claim: claim(`Right ${LB_SHEAR_ASSEMBLIES.right}; left ${LB_SHEAR_ASSEMBLIES.left}`, [cat(18, "* Two shear bonnet assemblies one right and one left are required per cavity")], "A") }];
+  }
   return [];
 }
-function bonnetAssemblies(cavity, side, stack) {
+var BOOSTER_GROUP = "booster";
+function bonnetAssemblies(cavity, side, config) {
   const id = `bonnet-${cavity}-${side}`;
-  const loc = locationLabel(cavity, side, stack);
+  const loc = locationLabel(cavity, side, config.stack);
   const groups = Object.keys(GROUP_NAMES);
+  const type = config.bonnets[cavity];
+  const kind = type === "largeBoreShear" ? "Large-bore shear bonnet assembly" : "Bonnet assembly";
   return [
-    { id, name: `Bonnet assembly, ${loc}`, parentId: "bop", aliases: [`${loc} bonnet`, `${SIDE_NAME[side]} bonnet`, `${loc} bonnet assembly`] },
+    { id, name: `${kind}, ${loc}`, parentId: "bop", aliases: [`${loc} bonnet`, `${SIDE_NAME[side]} bonnet`, `${loc} bonnet assembly`, ...type === "largeBoreShear" ? ["shear bonnet", "large bore bonnet"] : []] },
     ...groups.map((g) => ({ id: `${id}/${g}`, name: GROUP_NAMES[g], parentId: id, aliases: [] })),
+    ...type === "tandemBooster" ? [{ id: `${id}/${BOOSTER_GROUP}`, name: "Tandem booster (p.21)", parentId: id, aliases: ["tandem booster", "booster"] }] : [],
     { id: `ram-${cavity}-${side}`, name: `Ram assembly, ${loc}`, parentId: "bop", aliases: [`${loc} ram`, `${SIDE_NAME[side]} ram`] }
   ];
 }
+var LB_SWAPPED = [2, 3, 5, 26, 42];
+var LB_SWAP_NOTE = (item) => `Catalog p.18 lists this part as item ${item}A, the large-bore shear bonnet version of standard item ${item} (same name with "/Shear"). Parts that p.18 does not list keep their standard p.12 part numbers here; whether the large-bore bonnet shares them is not stated.`;
+var LB_KIT_CLAIM = (item) => claim(`Large-bore shear bonnet softgoods kit ${LB_SHEAR_KIT} (13-5/8" 10,000 psi) lists item ${item}. One kit contains softgoods for one bonnet.`, [cat(19, "*  One kit contains softgoods for one bonnet.")], "A");
+function kitsFor(item, type) {
+  if (type !== "largeBoreShear") return kitClaims(item);
+  return KIT_ITEMS.includes(item) && LB_SHEAR_KIT ? [LB_KIT_CLAIM(item)] : [];
+}
+var BOOSTER_LOCK = claim(
+  "With tandem boosters, the standard shear locking mechanism is installed on the outside end of the booster, because the booster tail rod has the same stroke as the operating piston.",
+  [cat(20, "Since the tail rod of the tandem booster has the same stroke as the BOP's operating piston, the standard shear locking mechanism can be installed on the outside end of the booster.")],
+  "A"
+);
 function bonnetInstances(cavity, side, f, config) {
   const prefix = `${cavity}-${side}`;
   const loc = locationLabel(cavity, side, config.stack);
+  const type = config.bonnets[cavity];
+  const lb = type === "largeBoreShear";
+  const dims = bonnetDims(type);
   const withLiftingEye = config.stack === "single" || cavity === "upper";
+  const layoutFor = (item) => (type === "tandemBooster" ? BOOSTER_CHAIN_OVERRIDES[item] : void 0) ?? BONNET_LAYOUT[item];
   const out = [];
   for (const it of allCatalogItems()) {
     if (it.item === 1 || it.item === 4) continue;
     const cur = CURATION[it.item];
-    const geom = bonnetItemGeometry(it.item, f, withLiftingEye);
+    const geom = bonnetItemGeometry(it.item, f, withLiftingEye, dims);
     if (it.item === 38 && !geom) continue;
     const noGeom = ITEMS_WITHOUT_GEOMETRY[it.item];
+    const swap = lb && LB_SWAPPED.includes(it.item) ? lbShearItem(`${it.item}A`) : null;
+    const boosterLock = type === "tandemBooster" && (it.item === 7 || it.item === 8);
     out.push({
       id: `${prefix}/i${String(it.item).padStart(2, "0")}`,
-      name: it.description,
+      name: swap ? swap.description : it.description,
       catalogItem: it.item,
-      aliases: [...cur.aliases ?? [], loc],
+      ...swap ? { itemLabel: `${it.item}A` } : {},
+      aliases: [...cur.aliases ?? [], loc, ...swap ? ["shear bonnet", "large bore"] : []],
       assemblyId: `bonnet-${cavity}-${side}/${cur.group}`,
       systemIds: cur.systems,
       cavity,
       side,
-      partNumber: partNumberClaim(it.item),
-      quantity: quantityClaim(it.item, config.stack),
-      functionText: cur.functions ?? [],
+      partNumber: swap ? claim(swap.partNumber, [cat(18, void 0, `item ${swap.item}, 13-5/8" 10,000 psi column`)], "A") : partNumberClaim(it.item),
+      quantity: swap ? claim("2 per cavity (one right and one left bonnet)", [cat(18, "Description (2 Required per Cavity)")], "A") : quantityClaim(it.item, config.stack),
+      functionText: [...cur.functions ?? [], ...boosterLock ? [BOOSTER_LOCK] : []],
       material: cur.material ?? null,
-      documentedDimensions: extraDimensions(it.item),
-      drawing: drawingClaim(it.item),
+      documentedDimensions: extraDimensions(it.item, type),
+      drawing: swap ? claim(`Balloon ${swap.item} on the large-bore shear bonnet view SD-017503 (catalog p.18)`, [cat(18)], "A") : drawingClaim(it.item),
       recommendedSpare: spareClaim(it.item),
-      kits: kitClaims(it.item),
-      notes: [...cur.notes ?? [], ...noGeom ? [noGeom] : []],
-      geometry: geom ? { tier: "T3", tierNote: DRAWN_TIER_NOTE, meshes: geom.meshes, kinematic: geom.kinematic, explode: toWorldExplode(BONNET_LAYOUT[it.item] ?? geom.explode, f, cavity, config.stack), spin: geom.spin } : { tier: "T3", tierNote: noGeom ?? "No geometry.", meshes: [], kinematic: "fixed", explode: [0, 0, 0] }
+      kits: kitsFor(it.item, type),
+      notes: [...cur.notes ?? [], ...noGeom ? [noGeom] : [], ...swap ? [LB_SWAP_NOTE(it.item)] : []],
+      geometry: geom ? { tier: "T3", tierNote: lb ? LB_TIER_NOTE : DRAWN_TIER_NOTE, meshes: geom.meshes, kinematic: geom.kinematic, explode: toWorldExplode(layoutFor(it.item) ?? geom.explode, f, cavity, config.stack, WORLD_UP_ITEMS.has(it.item)), spin: geom.spin } : { tier: "T3", tierNote: noGeom ?? "No geometry.", meshes: [], kinematic: "fixed", explode: [0, 0, 0] }
     });
+  }
+  if (lb) out.push(lbLipOring(cavity, side, f, config));
+  return out;
+}
+function lbLipOring(cavity, side, f, config) {
+  const row = lbShearItem("24A");
+  const geom = lbLipOringGeometry(f, bonnetDims("largeBoreShear"));
+  return {
+    id: `${cavity}-${side}/i24a`,
+    name: row.description,
+    itemLabel: "24A",
+    aliases: ["o-ring", "lip o-ring", "shear bonnet", locationLabel(cavity, side, config.stack)],
+    assemblyId: `bonnet-${cavity}-${side}/seals`,
+    systemIds: ["seals", "hydraulics"],
+    cavity,
+    side,
+    partNumber: claim(row.partNumber, [cat(18, void 0, 'item 24A, 13-5/8" 10,000 psi column')], "A"),
+    quantity: claim("2 per cavity (one right and one left bonnet)", [cat(18, "Description (2 Required per Cavity)")], "A"),
+    functionText: [],
+    material: null,
+    documentedDimensions: [],
+    drawing: claim("Balloon 24A on the large-bore shear bonnet view SD-017503 (catalog p.18)", [cat(18)], "A"),
+    recommendedSpare: null,
+    kits: [],
+    notes: ["The part name places this O-ring between the intermediate flange and the bonnet lip. p.18 lists it only for the large-bore shear bonnet."],
+    geometry: { tier: "T3", tierNote: LB_TIER_NOTE, meshes: geom.meshes, kinematic: geom.kinematic, explode: toWorldExplode(LB_LIP_ORING_LAYOUT, f, cavity, config.stack) }
+  };
+}
+
+// src/geometry/booster-geometry.ts
+var HEAD = { s0: S.cylEnd, s1: S.cylEnd + 2 };
+var CYL = { s0: HEAD.s1, s1: S.cylEnd + P.boosterLength - 2 };
+var ADAPTER = { s0: CYL.s1, s1: S.cylEnd + P.boosterLength };
+var ADAPTER_R = STANDARD_DIMS.collarR + 1.5;
+var PISTON_R = STANDARD_DIMS.pistonR;
+var CYL_R = STANDARD_DIMS.cylR;
+var PISTON = { s0: S.tailEnd, s1: S.tailEnd + 2.5 };
+var TAIL_END = S.tailEnd + P.boosterLength;
+var HEAD_SCREWS = ellipsePoints(6, 7.6, 7.6);
+var ADAPTER_SCREWS = ellipsePoints(8, 9, 9, Math.PI / 8);
+function atY2(f, s, y, shape, material) {
+  return { shape, position: [worldX(f, s), f.cavityY + y, 0], axis: "y", material };
+}
+function boosterItemGeometry(item, f) {
+  switch (item) {
+    case 1:
+      return {
+        meshes: [plateS(f, { type: "circle", r: ADAPTER_R }, ADAPTER.s0, ADAPTER.s1 - ADAPTER.s0, "structureAlt", [{ x: 0, y: 0, r: P.tailRodRadius + 0.3 }], 0, 0.35)],
+        kinematic: "bonnet",
+        explode: [0, 0, 0]
+      };
+    case 2:
+      return { meshes: [atY2(f, ADAPTER.s0 + 1, ADAPTER_R + 0.25, { kind: "hex", across: 0.9, len: 0.6 }, "fitting")], kinematic: "bonnet", explode: [0, 0, 0] };
+    case 3:
+      return {
+        meshes: [
+          latheS(f, [
+            [PISTON_R - 0.1, CYL.s0],
+            [CYL_R + 0.4, CYL.s0],
+            [CYL_R + 0.4, CYL.s0 + 0.8],
+            [CYL_R, CYL.s0 + 1.1],
+            [CYL_R, CYL.s1 - 1.5],
+            [ADAPTER_R - 0.3, CYL.s1 - 1.2],
+            [ADAPTER_R - 0.3, CYL.s1],
+            [PISTON_R - 0.1, CYL.s1],
+            [PISTON_R - 0.1, CYL.s0]
+          ], "structure")
+        ],
+        kinematic: "bonnet",
+        explode: [0, 0, 0]
+      };
+    case 4:
+      return {
+        meshes: [plateS(f, { type: "circle", r: STANDARD_DIMS.collarR + 0.8 }, HEAD.s0, HEAD.s1 - HEAD.s0, "structureAlt", [{ x: 0, y: 0, r: P.tailRodRadius + 0.3 }], 0, 0.3)],
+        kinematic: "bonnet",
+        explode: [0, 0, 0]
+      };
+    case 5:
+      return { meshes: [rodS(f, P.tailRodRadius, PISTON.s1 - 0.2, TAIL_END, "moving")], kinematic: "ram", explode: [0, 0, 0] };
+    case 6:
+      return {
+        meshes: [
+          latheS(f, [
+            [0, PISTON.s0],
+            [PISTON_R - 0.1, PISTON.s0],
+            [PISTON_R, PISTON.s0 + 0.1],
+            [PISTON_R, PISTON.s0 + 0.45],
+            [PISTON_R - 0.3, PISTON.s0 + 0.45],
+            [PISTON_R - 0.3, PISTON.s0 + 0.95],
+            [PISTON_R, PISTON.s0 + 0.95],
+            [PISTON_R, PISTON.s1 - 0.1],
+            [PISTON_R - 0.1, PISTON.s1],
+            [0, PISTON.s1]
+          ], "moving")
+        ],
+        kinematic: "ram",
+        explode: [0, 0, 0]
+      };
+    case 7:
+      return { meshes: ADAPTER_SCREWS.flatMap(([y, z2]) => [rodS(f, 0.4, CYL.s1 - 1.2, ADAPTER.s1, "fastener", y, z2), ...hexHeadS(f, 1.05, ADAPTER.s1, 0.75, y, z2)]), kinematic: "bonnet", explode: [0, 0, 0] };
+    case 8:
+      return { meshes: HEAD_SCREWS.flatMap(([y, z2]) => [rodS(f, 0.45, HEAD.s0 - 3, HEAD.s1, "fastener", y, z2), ...hexHeadS(f, 1.15, HEAD.s1, 0.85, y, z2)]), kinematic: "bonnet", explode: [0, 0, 0] };
+    case 9:
+      return { meshes: [ringS(f, PISTON_R + 0.1, 0.2, CYL.s0 + 0.1)], kinematic: "bonnet", explode: [0, 0, 0] };
+    case 10:
+      return { meshes: [ringS(f, P.tailRodRadius + 0.2, 0.22, HEAD.s0 + 1)], kinematic: "bonnet", explode: [0, 0, 0] };
+    case 11:
+      return { meshes: [ringS(f, PISTON_R + 0.1, 0.2, CYL.s1 - 0.1)], kinematic: "bonnet", explode: [0, 0, 0] };
+    case 12:
+      return { meshes: [ringS(f, PISTON_R - 0.12, 0.22, PISTON.s0 + 0.7)], kinematic: "ram", explode: [0, 0, 0] };
+    case 13:
+      return { meshes: [cylS(f, PISTON_R + 0.04, PISTON.s0 + 1.4, PISTON.s0 + 2, 0, 0, "softgood", PISTON_R - 0.15)], kinematic: "ram", explode: [0, 0, 0] };
+    case 14:
+      return { meshes: [cylS(f, P.tailRodRadius + 0.4, ADAPTER.s0 + 0.3, ADAPTER.s0 + 0.9, 0, 0, "softgood", P.tailRodRadius + 0.05)], kinematic: "bonnet", explode: [0, 0, 0] };
+    case 15:
+      return { meshes: [ringS(f, P.tailRodRadius + 0.2, 0.22, ADAPTER.s0 + 1.4)], kinematic: "bonnet", explode: [0, 0, 0] };
+    case 16:
+      return {
+        meshes: [atY2(f, CYL.s1 - 3, CYL_R + 0.45, { kind: "cyl", r: 0.45, len: 0.9, sides: 20 }, "fitting"), atY2(f, CYL.s1 - 3, CYL_R + 1.2, { kind: "cyl", r: 0.75, len: 0.7, sides: 24 }, "fitting")],
+        kinematic: "bonnet",
+        explode: [0, 0, 0]
+      };
+    default:
+      return null;
+  }
+}
+
+// src/data/build-booster.ts
+var COLUMN = '13-5/8" 3,000, 5,000 & 10,000 psi column';
+var ONE_ASSEMBLY = "** One assembly includes two tandem";
+var FORCE = claim(
+  "Tandem boosters approximately double the force available to shear the pipe, without increasing the wear and tear on the packers.",
+  [cat(20, "A BOP equipped with tandem boosters can deliver increased shearing force, while not increasing the wear and tear on the packers. Tandem boosters approximately double the force available to shear the pipe.")],
+  "A",
+  "From the tandem booster introduction on p.20; p.21 lists the composite-style parts used on this BOP."
+);
+var LOCK = claim(
+  "The booster tail rod has the same stroke as the operating piston, so the standard shear locking mechanism can be installed on the outside end of the booster.",
+  [cat(20, "Since the tail rod of the tandem booster has the same stroke as the BOP's operating piston, the standard shear locking mechanism can be installed on the outside end of the booster.")],
+  "A"
+);
+var TIER_NOTE = "Order follows the p.21 exploded view (cylinder head, cylinder, piston with tail rod, adapter plate) and the p.20 statement that the standard lock sits on the outside end of the booster. Sizes and seal seats are educational approximations.";
+var NO_GEOMETRY = "Listed on p.21, but its position on the booster is not documented, so no geometry is shown.";
+var ONCE_PER_ASSEMBLY = (it) => it.qtyPerAssembly === "1";
+function systemsFor(item) {
+  if (item >= 9 && item <= 15) return ["seals", "hydraulics"];
+  if (item === 7 || item === 8 || item === 17) return ["fasteners"];
+  if (item === 1 || item === 4) return ["structure", "hydraulics"];
+  return ["hydraulics"];
+}
+function functionsFor(item) {
+  if (item === 3 || item === 6) return [FORCE];
+  if (item === 5) return [FORCE, LOCK];
+  return [];
+}
+function assemblyValues(item) {
+  if (item !== 3) return [];
+  return [
+    ...TANDEM_BOOSTER_ASSEMBLY ? [{ label: "Tandem booster assembly part number (two boosters)", claim: claim(TANDEM_BOOSTER_ASSEMBLY, [cat(21, ONE_ASSEMBLY, COLUMN)], "A") }] : [],
+    ...TANDEM_BOOSTER_REPAIR_KIT ? [{ label: "Tandem booster repair kit part number", claim: claim(TANDEM_BOOSTER_REPAIR_KIT, [cat(21, void 0, COLUMN)], "A", "The catalog does not list the kit contents.") }] : []
+  ];
+}
+function boosterInstances(cavity, side, f, config) {
+  if (config.bonnets[cavity] !== "tandemBooster") return [];
+  const loc = locationLabel(cavity, side, config.stack);
+  return TANDEM_BOOSTER_ITEMS.filter((it) => side === "L" || !ONCE_PER_ASSEMBLY(it)).map((it) => {
+    const geom = boosterItemGeometry(it.item, f);
+    const layout = BOOSTER_LAYOUT[it.item];
+    return {
+      id: `${cavity}-${side}/tb${String(it.item).padStart(2, "0")}`,
+      name: `${it.description} (tandem booster)`,
+      itemLabel: `TB${it.item}`,
+      aliases: ["tandem booster", "booster", loc, it.description.toLowerCase()],
+      assemblyId: `bonnet-${cavity}-${side}/${BOOSTER_GROUP}`,
+      systemIds: systemsFor(it.item),
+      cavity,
+      side,
+      partNumber: it.partNumber ? claim(it.partNumber, [cat(21, void 0, `item ${it.item}, ${COLUMN}`)], "A") : null,
+      quantity: claim(`${it.qtyPerAssembly} per tandem booster assembly (one assembly includes two tandem boosters)`, [cat(21, ONE_ASSEMBLY, `item ${it.item}`)], "A"),
+      functionText: functionsFor(it.item),
+      material: null,
+      documentedDimensions: assemblyValues(it.item),
+      drawing: claim(`Balloon ${it.item} on the composite-style tandem booster view (catalog p.21)`, [cat(21)], "A"),
+      recommendedSpare: null,
+      kits: [],
+      notes: [
+        ...it.partNumber ? [] : ['The catalog prints "-" instead of a part number for this item.'],
+        ...ONCE_PER_ASSEMBLY(it) ? ["Quantity 1 per assembly of two boosters; shown once, on the left booster."] : [],
+        ...geom ? [] : [NO_GEOMETRY]
+      ],
+      geometry: geom && layout ? { tier: "T3", tierNote: TIER_NOTE, meshes: geom.meshes, kinematic: geom.kinematic, explode: toWorldExplode(layout, f, cavity, config.stack, BOOSTER_WORLD_UP.has(it.item)) } : { tier: "T3", tierNote: NO_GEOMETRY, meshes: [], kinematic: "fixed", explode: [0, 0, 0] }
+    };
+  });
+}
+
+// src/geometry/ram-geometry.ts
+var PACKER_DEPTH = 1.4;
+var PLATE = 0.35;
+var ISR_VEE = 3;
+var INSERTS = 7;
+function block(f, s0, s1, cutoutR, chamfer, material, y = 0, height = P.ramHeight, width = P.ramWidth, vee = 0) {
+  return {
+    shape: { kind: "ramBlock", depth: s1 - s0, height, width, cutoutR, chamfer, ...vee ? { vee } : {} },
+    position: [worldX(f, (s0 + s1) / 2), f.cavityY + y, 0],
+    axis: "x",
+    material,
+    flip: f.sign < 0
+  };
+}
+function cutoutRadius(kind) {
+  switch (kind.type) {
+    case "pipe":
+      return Number(kind.pipeSize) / 2;
+    case "vbr":
+      return vbrRow(kind.id).max / 2;
+    case "flexpacker":
+      return flexpackerRow(kind.id).max / 2;
+    default:
+      return 0;
+  }
+}
+var isShear = (kind) => kind.type === "sbr" || kind.type === "isr";
+var isVariable = (kind) => kind.type === "vbr" || kind.type === "flexpacker";
+function topSealArc(f, front) {
+  const R = P.ramWidth / 2 - 0.9;
+  return {
+    shape: { kind: "torus", major: R, tube: 0.32, arc: Math.PI },
+    position: [worldX(f, front + 1.6), f.cavityY + P.ramHeight / 2 + 0.05, 0],
+    axis: "y",
+    material: "softgood",
+    rotation: [Math.PI / 2, 0, f.sign > 0 ? -Math.PI / 2 : Math.PI / 2]
+  };
+}
+function packerInserts(f, front, cut) {
+  const R = cut + 0.55;
+  const y = P.ramHeight / 2 - PLATE - 0.2;
+  const out = [];
+  for (let i = 0; i < INSERTS; i++) {
+    const t = -1.2 + 2.4 * i / (INSERTS - 1);
+    const x = Math.cos(t) * R;
+    const z2 = Math.sin(t) * R;
+    for (const dy of [y, -y]) {
+      out.push({
+        shape: { kind: "box", size: [1, 0.32, 0.75] },
+        position: [worldX(f, front + x), f.cavityY + dy, z2],
+        axis: "x",
+        material: "ram",
+        rotation: [0, Math.atan2(-z2, f.sign * x), 0]
+      });
+    }
   }
   return out;
 }
+function isrVee(isUpperBlade) {
+  return isUpperBlade ? ISR_VEE : -ISR_VEE;
+}
+function ramPartGeometry(kind, part, f, isUpperBlade) {
+  const front = S.ramFront;
+  const cut = cutoutRadius(kind);
+  const chamfer = kind.type === "sbr" ? isUpperBlade ? 2.5 : -2.5 : 0;
+  const vee = kind.type === "isr" ? isrVee(isUpperBlade) : 0;
+  const topY = P.ramHeight / 2;
+  switch (part) {
+    case "body":
+      return {
+        meshes: [block(f, front + (isShear(kind) ? 0 : PACKER_DEPTH), S.ramBack, cut, chamfer, "ram", 0, P.ramHeight, P.ramWidth, vee)],
+        kinematic: "ram",
+        explode: [0, 0, 0]
+      };
+    case "packer": {
+      if (isShear(kind)) return null;
+      const rubberH = P.ramHeight - 2 * PLATE;
+      return {
+        meshes: [
+          block(f, front, front + PACKER_DEPTH, cut, 0, "softgood", 0, rubberH),
+          block(f, front + 0.05, front + PACKER_DEPTH, cut, 0, "ram", topY - PLATE / 2, PLATE),
+          block(f, front + 0.05, front + PACKER_DEPTH, cut, 0, "ram", -topY + PLATE / 2, PLATE),
+          ...isVariable(kind) ? packerInserts(f, front, cut) : []
+        ],
+        kinematic: "ram",
+        explode: [-6, 0, 0]
+      };
+    }
+    case "topSeal":
+      return { meshes: [topSealArc(f, front)], kinematic: "ram", explode: [0, 8, 0] };
+    case "bladePacker":
+      if (kind.type !== "sbr" || !isUpperBlade) return null;
+      return {
+        meshes: [{ shape: { kind: "box", size: [2.6, 0.7, P.ramWidth - 3] }, position: [worldX(f, front + 2.2), f.cavityY + topY - 1.2, 0], axis: "x", material: "softgood" }],
+        kinematic: "ram",
+        explode: [-4, 6, 0]
+      };
+    case "sidePackers": {
+      if (!isShear(kind)) return null;
+      const edge = P.ramWidth / 2 - 0.6;
+      return {
+        meshes: [1, -1].map((dz) => ({
+          shape: { kind: "box", size: [2.2, P.ramHeight - 1.2, 0.9] },
+          position: [worldX(f, front + 1.6 + (kind.type === "isr" ? vee / 2 : dz * chamfer / 4)), f.cavityY, dz * edge],
+          axis: "x",
+          material: "softgood"
+        })),
+        kinematic: "ram",
+        explode: [-5, 0, 0]
+      };
+    }
+    case "bladeSeals": {
+      if (kind.type !== "isr" || !isUpperBlade) return null;
+      const hw = P.ramWidth / 2 - 0.3;
+      const len = Math.hypot(ISR_VEE, hw) - 1;
+      return {
+        meshes: [1, -1].map((dz) => ({
+          shape: { kind: "box", size: [0.45, 0.5, len] },
+          position: [worldX(f, front + 0.35), f.cavityY + topY - 0.9, dz * hw / 2],
+          axis: "x",
+          material: "softgood",
+          rotation: [0, Math.atan2(dz * f.sign * ISR_VEE, hw), 0]
+        })),
+        kinematic: "ram",
+        explode: [-4, 5, 0]
+      };
+    }
+  }
+}
+
+// src/data/build-ram.ts
 var PRESSURE_ENERGIZED = claim(
   "Rams are pressure-energized: wellbore pressure acts on the rams to increase the sealing force and maintain the seal if hydraulic pressure is lost.",
   [cat(5, "Well bore pressure acts on the rams to increase the sealing force and maintain the seal in case of hydraulic pressure loss."), { sourceId: "SRC-SLB-DS-2025" }],
@@ -3729,71 +4205,216 @@ var SBR_FUNCTION = claim(
   "A"
 );
 var CAMRAM = claim("Packer part numbers beginning with 644 indicate the CAMRAM lipped-plate design.", [cat(41)], "A");
+var CAMRAM_TOP_SEAL = claim('CAMRAM top seals are standard for U BOP pipe rams from 7-1/16" through 18-3/4".', [cat(41)], "A");
 var SBR_MATERIAL = claim("Blades: sulfide-stress-cracking susceptible materials. Ram body: sulfide-stress-cracking resistant materials. Grades not documented.", [cat(47)], "A");
-var SBR_SIDE_NOTE = 'The catalog lists an "upper" and a "lower" ram subassembly. Which bonnet side each goes on is not documented; the model assignment is illustrative.';
-function ramPartDefs(config, cavity, side) {
-  const kind = config.rams[cavity];
+var SHEAR_SIDE_NOTE = 'The catalog lists an "upper" and a "lower" ram subassembly. Which bonnet side each goes on is not documented; the model assignment is illustrative.';
+var ISR_FUNCTION = claim(
+  'The Interlocking Shear Ram (ISR) is an improved-shearing-capacity alternative to the standard SBR, to be used only when the standard rams cannot handle the desired shearing load. Its "V" shape, designed as wide as possible, can shear multiple strings and drill pipe as large as 6-5/8" O.D.',
+  [cat(52, 'Since the geometry of the ISR ram incorporates a "V" shape and is designed as wide as possible, it can shear multiple strings and drill pipe as large as 6-5/8" O.D.')],
+  "A"
+);
+var ISR_FISH = claim(
+  "ISR rams do not fold over the lower fish, so less force is required to shear, and kill mud can be pumped down the severed drill string.",
+  [cat(52, "ISR Rams do not have to fold over the lower fish. This means less force is required to shear and, by leaving the fish open, kill mud can be pumped down the severed drill string.")],
+  "A"
+);
+var ISR_INTERLOCK = claim(
+  "The interlocking mechanism lets these rams be used in an oversized cavity without fear of a leak at low wellbore pressures.",
+  [cat(52, "The interlocking mechanism incorporated in the ISR means that these rams can be utilized in an oversized cavity without fear of a leak at low wellbore pressures.")],
+  "A"
+);
+var VBR_FUNCTION = claim(
+  "The VBR-II packer accommodates a range of pipe sizes and may be used in existing Cameron variable bore rams. It seals on a range of drill pipe sizes as well as hexagonal kellys and provides uniform sealing pressure with virtual elimination of extrusion paths.",
+  [cat(54, "The VBR-II seals on a range of drill pipe sizes as well as hexagonal kellys and provides uniform sealing pressure with virtual elimination of extrusion paths.")],
+  "A"
+);
+var FLEX_FUNCTION = claim(
+  "The FLEXPACKER-NR is a narrow variable bore ram packer designed for use with tapered drill strings. It is designed to fit standard fixed-bore Cameron pipe rams.",
+  [cat(55, "The Cameron Flexpacker-NR is a narrow variable bore ram packer designed for use with tapered drill strings. These packers are designed to fit standard fixed bore Cameron pipe rams.")],
+  "A"
+);
+var pn = (value, page) => value ? claim(value, [cat(page)], "A") : null;
+function shearDefs(kind, side) {
+  const upper = side === "L";
+  const label = upper ? "upper" : "lower";
   if (kind.type === "sbr") {
-    const half = side === "L" ? SBR.upper : SBR.lower;
-    const label = side === "L" ? "upper" : "lower";
+    const half2 = upper ? SBR.upper : SBR.lower;
     return [
-      { part: "body", name: `Shearing blind ram body (${label} ram)`, pn: half.body, functions: [SBR_FUNCTION, PRESSURE_ENERGIZED], material: SBR_MATERIAL, notes: [SBR_SIDE_NOTE, `Subassembly part number: ${half.subassembly}.`] },
-      ...half.bladePacker ? [{ part: "bladePacker", name: "Blade packer", pn: half.bladePacker, functions: [] }] : [],
-      { part: "sidePackers", name: "Side packers (pair)", pn: `${half.sidePackers[0]} / ${half.sidePackers[1]}`, functions: [] },
-      { part: "topSeal", name: "Top seal", pn: half.topSeal, functions: [], notes: ['Catalog p.48 lists the top seal as "2 Required" under the lower ram subassembly.'] }
+      { part: "body", name: `Shearing blind ram body (${label} ram)`, partNumber: pn(half2.body, 48), functions: [SBR_FUNCTION, PRESSURE_ENERGIZED], material: SBR_MATERIAL, notes: [SHEAR_SIDE_NOTE, `Subassembly part number: ${half2.subassembly}.`] },
+      ...half2.bladePacker ? [{ part: "bladePacker", name: "Blade packer", partNumber: pn(half2.bladePacker, 48), functions: [] }] : [],
+      { part: "sidePackers", name: "Side packers (pair)", partNumber: pn(`${half2.sidePackers[0]} / ${half2.sidePackers[1]}`, 48), functions: [] },
+      { part: "topSeal", name: "Top seal", partNumber: pn(half2.topSeal, 48), functions: [], notes: ['Catalog p.48 lists the top seal as "2 Required" under the lower ram subassembly.'] }
     ];
   }
-  const row = pipeRamRow(kind.type === "blind" ? "Blind" : kind.pipeSize);
-  const title = kind.type === "blind" ? "Blind ram" : `Pipe ram, ${kind.pipeSize}" pipe`;
+  const half = upper ? ISR.upper : ISR.lower;
+  const items2 = upper ? "2-7" : "9-12";
   return [
-    { part: "body", name: `${title} body`, pn: row.ram, functions: [PRESSURE_ENERGIZED, ...kind.type === "pipe" ? [PIPE_RAM_FEATURES] : []], notes: [`Ram assembly part number: ${row.assembly}.`] },
-    { part: "packer", name: "Ram packer", pn: row.packer, functions: row.packer?.startsWith("644") ? [CAMRAM] : [] },
-    { part: "topSeal", name: "Top seal", pn: PIPE_RAM_TOP_SEAL, functions: [claim('CAMRAM top seals are standard for U BOP pipe rams from 7-1/16" through 18-3/4".', [cat(41)], "A")] }
+    {
+      part: "body",
+      name: `ISR shearing blind ram body (${label} ram)`,
+      partNumber: pn(half.body, 52),
+      functions: [ISR_FUNCTION, ISR_FISH, ISR_INTERLOCK, PRESSURE_ENERGIZED],
+      notes: [SHEAR_SIDE_NOTE, `Subassembly part number (items ${items2}): ${half.subassembly}.`, ...upper ? ['Catalog p.52 footnote on this row: "Should be with wear pads."'] : []]
+    },
+    { part: "sidePackers", name: "ISR side packers (pair)", partNumber: pn(`${half.sidePackers[0]} / ${half.sidePackers[1]}`, 52), functions: [] },
+    { part: "topSeal", name: "ISR top seal", partNumber: pn(half.topSeal, 52), functions: [] },
+    ...half.bladeSeals ? [{ part: "bladeSeals", name: "ISR blade seals (pair)", partNumber: pn(`${half.bladeSeals[0]} / ${half.bladeSeals[1]}`, 52), functions: [] }] : []
   ];
 }
+function flexpackerTopSeal(packer) {
+  if (FLEXPACKER_TOP_SEAL && FLEXPACKER_TOP_SEAL.packer === packer) return claim(FLEXPACKER_TOP_SEAL.topSeal, [cat(55, void 0, 'FLEXPACKER table, 13-5/8" row')], "A");
+  return claim(
+    PIPE_RAM_TOP_SEAL,
+    [cat(55, "These packers are designed to fit standard fixed bore Cameron pipe rams."), cat(43)],
+    "D",
+    'Inferred: p.55 prints a top seal only for the 2-3/8" x 3-1/2" packer. This packer fits standard pipe rams, whose top seal is listed on p.43.'
+  );
+}
+function ramPartDefs(config, cavity, side) {
+  const kind = config.rams[cavity];
+  switch (kind.type) {
+    case "sbr":
+    case "isr":
+      return shearDefs(kind, side);
+    case "vbr": {
+      const row = vbrRow(kind.id);
+      const label = row.highTemp ? "Extended range high temperature VBR-II" : "VBR-II";
+      return [
+        { part: "body", name: `Variable bore ram body (${label}, ${row.range})`, partNumber: pn(row.body, 54), functions: [PRESSURE_ENERGIZED, VBR_FUNCTION], notes: [`Ram subassembly part number: ${row.subassembly}.`] },
+        { part: "packer", name: `${label} packer (${row.range})`, partNumber: pn(row.packer, 54), functions: [VBR_FUNCTION] },
+        { part: "topSeal", name: "Top seal", partNumber: pn(row.topSeal, 54), functions: [] }
+      ];
+    }
+    case "flexpacker": {
+      const row = flexpackerRow(kind.id);
+      return [
+        {
+          part: "body",
+          name: "Pipe ram body (for FLEXPACKER-NR)",
+          partNumber: null,
+          functions: [PRESSURE_ENERGIZED, FLEX_FUNCTION],
+          notes: ["Catalog p.55 lists only the packer. It fits standard fixed-bore Cameron pipe rams; which pipe ram body is used is not stated."]
+        },
+        { part: "packer", name: `FLEXPACKER-NR packer (${row.range})`, partNumber: pn(row.packer, 55), functions: [FLEX_FUNCTION] },
+        { part: "topSeal", name: "Top seal", partNumber: flexpackerTopSeal(row.packer), functions: [] }
+      ];
+    }
+    case "pipe":
+    case "blind": {
+      const row = pipeRamRow(kind.type === "blind" ? "Blind" : kind.pipeSize);
+      const title = kind.type === "blind" ? "Blind ram" : `Pipe ram, ${kind.pipeSize}" pipe`;
+      return [
+        { part: "body", name: `${title} body`, partNumber: pn(row.ram, 43), functions: [PRESSURE_ENERGIZED, ...kind.type === "pipe" ? [PIPE_RAM_FEATURES] : []], notes: [`Ram assembly part number: ${row.assembly}.`] },
+        { part: "packer", name: "Ram packer", partNumber: pn(row.packer, 43), functions: row.packer?.startsWith("644") ? [CAMRAM] : [] },
+        { part: "topSeal", name: "Top seal", partNumber: pn(PIPE_RAM_TOP_SEAL, 43), functions: [CAMRAM_TOP_SEAL] }
+      ];
+    }
+  }
+}
+var DRAWING = {
+  pipe: claim("Pipe ram sketch Sd-10825 (catalog p.41); ram assembly is balloon 4 on SD17500", [cat(41), cat(9)], "A"),
+  blind: claim("Pipe ram sketch Sd-10825 (catalog p.41); ram assembly is balloon 4 on SD17500", [cat(41), cat(9)], "A"),
+  sbr: claim("Shear ram figures (catalog p.47); balloon 4 on SD17500", [cat(47), cat(9)], "A"),
+  isr: claim("ISR shearing blind ram view SD 034603 (catalog p.52); balloon 4 on SD17500", [cat(52), cat(9)], "A"),
+  vbr: claim("U BOP variable bore ram figure (catalog p.54); balloon 4 on SD17500", [cat(54), cat(9)], "A"),
+  flexpacker: claim("FLEXPACKER-NR photo (catalog p.55); balloon 4 on SD17500", [cat(55), cat(9)], "A")
+};
+function tierNote(kind) {
+  switch (kind.type) {
+    case "pipe":
+      return "Pipe cutout radius is half the documented pipe size; all other sizes are educational approximations.";
+    case "vbr":
+    case "flexpacker":
+      return "Bore cutout drawn at the largest pipe of the documented range. The inserts follow the p.54 picture; their shape, material and all sizes are educational approximations.";
+    case "isr":
+      return 'The "V" front follows the catalog statement that the ISR geometry incorporates a "V" shape (p.52). Sizes are educational approximations.';
+    default:
+      return "Educational approximation.";
+  }
+}
+function sizeDimensions(kind, part) {
+  if (part === "topSeal") return [];
+  if (kind.type === "pipe") return [{ label: "Pipe size the ram fits", claim: claim(`${kind.pipeSize} in`, [cat(43)], "A") }];
+  if (kind.type === "vbr") return [{ label: "Pipe size range", claim: claim(vbrRow(kind.id).range, [cat(54)], "A") }];
+  if (kind.type === "flexpacker") return [{ label: "Pipe size range", claim: claim(flexpackerRow(kind.id).range, [cat(55)], "A") }];
+  if (kind.type === "isr" && part === "body") return [{ label: "Largest drill pipe it can shear", claim: claim('6-5/8" O.D.', [cat(52)], "A") }];
+  return [];
+}
+var PART_ALIAS = {
+  body: "ram block",
+  packer: "packer",
+  topSeal: "top seal",
+  bladePacker: "blade packer",
+  sidePackers: "side packer",
+  bladeSeals: "blade seal"
+};
+var KIND_ALIASES = {
+  pipe: ["pipe ram"],
+  blind: ["blind ram"],
+  sbr: ["shear ram", "sbr", "shearing blind ram"],
+  isr: ["isr", "interlocking shear ram", "shear ram"],
+  vbr: ["vbr", "variable bore ram", "vbr-ii"],
+  flexpacker: ["flexpacker", "flexpacker-nr", "variable bore"]
+};
 function ramInstances(cavity, side, f, config) {
   const kind = config.rams[cavity];
   const loc = locationLabel(cavity, side, config.stack);
-  const page = kind.type === "sbr" ? 48 : 43;
   return ramPartDefs(config, cavity, side).flatMap((def) => {
     const geom = ramPartGeometry(kind, def.part, f, side === "L");
     if (!geom) return [];
-    const partNumber = def.pn ? claim(def.pn, [cat(page)], "A") : null;
-    const sizeDim = kind.type === "pipe" && def.part !== "topSeal" ? [{ label: "Pipe size the ram fits", claim: claim(`${kind.pipeSize} in`, [cat(43)], "A") }] : [];
     const inst = {
       id: `${cavity}-${side}/ram-${def.part}`,
       name: def.name,
       catalogItem: 4,
-      aliases: ["ram", `${loc} ram`, def.part === "packer" ? "packer" : def.part === "topSeal" ? "top seal" : "ram block"],
+      aliases: ["ram", `${loc} ram`, PART_ALIAS[def.part], ...KIND_ALIASES[kind.type]],
       assemblyId: `ram-${cavity}-${side}`,
       systemIds: def.part === "body" ? ["rams"] : ["rams", "seals"],
       cavity,
       side,
-      partNumber,
+      partNumber: def.partNumber,
       quantity: def.part === "body" ? quantityClaim(4, config.stack) : null,
       functionText: def.functions,
       material: def.material ?? null,
-      documentedDimensions: sizeDim,
-      drawing: claim(page === 43 ? "Pipe ram sketch Sd-10825 (catalog p.41); ram assembly is balloon 4 on SD17500" : "Shear ram figures (catalog p.47); balloon 4 on SD17500", [cat(page === 43 ? 41 : 47), cat(9)], "A"),
+      documentedDimensions: sizeDimensions(kind, def.part),
+      drawing: DRAWING[kind.type],
       recommendedSpare: null,
       kits: [],
       notes: def.notes ?? [],
       geometry: {
         tier: "T3",
-        tierNote: kind.type === "pipe" ? "Pipe cutout radius is half the documented pipe size; all other sizes are educational approximations." : "Educational approximation.",
+        tierNote: tierNote(kind),
         meshes: geom.meshes,
         kinematic: geom.kinematic,
-        explode: toWorldExplode(RAM_LAYOUT[def.part] ?? geom.explode, f, cavity, config.stack)
+        explode: toWorldExplode(RAM_LAYOUT[def.part] ?? geom.explode, f, cavity, config.stack, WORLD_UP_RAM_PARTS.has(def.part))
       }
     };
     return [inst];
   });
 }
+function ramKindLabel(k) {
+  switch (k.type) {
+    case "pipe":
+      return `${k.pipeSize}" pipe rams`;
+    case "blind":
+      return "blind rams";
+    case "sbr":
+      return "shearing blind rams";
+    case "isr":
+      return "ISR shearing blind rams";
+    case "vbr": {
+      const row = vbrRow(k.id);
+      return `${row.highTemp ? "extended range high temperature VBR-II" : "VBR-II"} variable bore rams, ${row.range}`;
+    }
+    case "flexpacker":
+      return `FLEXPACKER-NR rams, ${flexpackerRow(k.id).range}`;
+  }
+}
 
 // src/data/config.ts
 var DEFAULT_CONFIG = {
   stack: "double",
-  rams: { upper: { type: "pipe", pipeSize: "5.000" }, lower: { type: "sbr" } }
+  rams: { upper: { type: "pipe", pipeSize: "5.000" }, lower: { type: "sbr" } },
+  bonnets: { upper: "standard", lower: "standard" }
 };
 function activeCavities(config) {
   return config.stack === "double" ? ["upper", "lower"] : ["upper"];
@@ -3803,9 +4424,44 @@ function activeCavities(config) {
 var named = (item, desc) => claim(`The catalog part name "${desc}" (item ${item}) identifies this interface.`, [cat(12, void 0, `item ${item}`)], "A");
 var shown = (page, what) => claim(`Shown in the catalog figure on p.${page}: ${what}.`, [cat(page)], "A");
 var inferred = (why) => claim(`Inferred, not stated in a source: ${why}.`, [cat(9)], "D");
-function bonnetEdges(p) {
+var namedLb = (item, desc) => claim(`The catalog part name "${desc}" (item ${item}, large-bore shear bonnet) identifies this interface.`, [cat(18, void 0, `item ${item}`)], "A");
+var BOOSTER_LOCK2 = claim(
+  "The standard shear locking mechanism can be installed on the outside end of the booster.",
+  [cat(20, "Since the tail rod of the tandem booster has the same stroke as the BOP's operating piston, the standard shear locking mechanism can be installed on the outside end of the booster.")],
+  "A"
+);
+function boosterEdges(p) {
+  const i = (n) => `${p}/i${String(n).padStart(2, "0")}`;
+  const tb = (n) => `${p}/tb${String(n).padStart(2, "0")}`;
+  const adjacent = inferred("adjacent in the tandem booster exploded view (p.21)");
+  const seat = (what) => inferred(`seal seat not documented; drawn next to the ${what} on p.21`);
+  return [
+    [tb(4), i(6), "fastened", inferred("the booster sits between the operating cylinder and the lock, which moves to the outside end of the booster (p.20)")],
+    [tb(8), tb(4), "fastened", adjacent],
+    [tb(8), i(6), "fastened", inferred("the long cap screws hold the cylinder head to the bonnet operating cylinder")],
+    [tb(3), tb(4), "mechanical", adjacent],
+    [tb(6), tb(3), "sliding", inferred("the booster piston moves inside the booster cylinder")],
+    [tb(5), tb(6), "mechanical", adjacent],
+    [tb(6), i(5), "mechanical", inferred("the booster piston is driven together with the operating piston (same stroke, p.20)")],
+    [tb(1), tb(3), "mechanical", adjacent],
+    [tb(7), tb(1), "fastened", adjacent],
+    [i(7), tb(1), "mechanical", BOOSTER_LOCK2],
+    [i(8), tb(5), "mechanical", inferred("the locking screw bears on the booster tail rod, which has the operating piston stroke (p.20)")],
+    [tb(9), tb(4), "seal-interface", seat("cylinder head")],
+    [tb(10), tb(4), "seal-interface", seat("cylinder head")],
+    [tb(11), tb(3), "seal-interface", seat("cylinder")],
+    [tb(12), tb(6), "seal-interface", seat("piston")],
+    [tb(13), tb(6), "seal-interface", seat("piston")],
+    [tb(14), tb(1), "seal-interface", seat("tail rod")],
+    [tb(15), tb(1), "seal-interface", seat("tail rod")],
+    [tb(16), tb(3), "hydraulic", inferred("the quiet muffler filter is drawn on top of the booster cylinder")],
+    [tb(2), tb(1), "mechanical", inferred("pipe plug listed with the adapter plate")]
+  ];
+}
+function bonnetEdges(p, type) {
   const i = (n) => `${p}/i${String(n).padStart(2, "0")}`;
   const ram = `${p}/ram-body`;
+  const booster = type === "tandemBooster";
   return [
     [i(12), i(3), "fastened", claim("Bonnet bolts hold the bonnet closed against the preventer body.", [cat(6)], "A")],
     [i(12), "body", "fastened", claim("Bonnet bolts hold the bonnet closed against the preventer body.", [cat(6)], "A")],
@@ -3816,12 +4472,12 @@ function bonnetEdges(p) {
     [i(35), i(3), "fastened", named(35, "Cap Screw, Int Flange to Bonnet")],
     [i(2), i(3), "mechanical", inferred("adjacent in exploded view SD17500")],
     [i(6), i(2), "mechanical", inferred("adjacent in exploded view SD17500")],
-    [i(7), i(6), "mechanical", inferred("adjacent in exploded view SD17500")],
+    ...booster ? [] : [[i(7), i(6), "mechanical", inferred("adjacent in exploded view SD17500")]],
     [i(13), i(7), "fastened", named(13, "Stud, Locking Screw Housing")],
     [i(14), i(7), "fastened", named(14, "Nut, Locking Screw Housing")],
     [i(14), i(13), "fastened", inferred("nuts thread onto the housing studs")],
     [i(8), i(7), "mechanical", named(7, "Housing, Locking Screw")],
-    [i(8), i(5), "mechanical", inferred("the locking screw bears on the tail end of the operating piston when locked")],
+    ...booster ? [] : [[i(8), i(5), "mechanical", inferred("the locking screw bears on the tail end of the operating piston when locked")]],
     [i(5), i(6), "sliding", shown(6, "operating piston inside the operating cylinder")],
     [i(26), i(5), "seal-interface", named(26, "Lip Seal, Operating Piston")],
     [i(42), i(5), "seal-interface", named(42, "Wear Ring, Operating Piston")],
@@ -3861,13 +4517,17 @@ function bonnetEdges(p) {
     [`${p}/ram-topSeal`, ram, "contained", shown(41, "ram, packer and top seal form one pipe ram (sketch Sd-10825)")],
     [`${p}/ram-bladePacker`, ram, "contained", shown(47, "shear ram with blade packer")],
     [`${p}/ram-sidePackers`, ram, "contained", shown(53, "side packers on the shear ram bodies")],
+    [`${p}/ram-bladeSeals`, ram, "contained", shown(52, "ISR blade seals on the upper ram (SD 034603)")],
+    [`${p}/i24a`, i(2), "seal-interface", namedLb("24A", "O-Ring, Int Flg to Bonnet Lip")],
+    [`${p}/i24a`, i(3), "seal-interface", namedLb("24A", "O-Ring, Int Flg to Bonnet Lip")],
+    ...booster ? boosterEdges(p) : [],
     [ram, "body", "sliding", claim("Wellbore pressure acts on the rams inside the body.", [cat(5)], "A")]
   ];
 }
 function buildConnections(config, byId) {
   const edges = [];
   for (const cavity of activeCavities(config)) {
-    for (const side of ["L", "R"]) edges.push(...bonnetEdges(`${cavity}-${side}`));
+    for (const side of ["L", "R"]) edges.push(...bonnetEdges(`${cavity}-${side}`, config.bonnets[cavity]));
     edges.push([`${cavity}-L/ram-body`, `${cavity}-R/ram-body`, "mechanical", shown(6, "opposing rams meet at the bore centreline when closed")]);
     for (const n of [1, 2]) {
       for (const side of ["L", "R"]) {
@@ -4011,8 +4671,8 @@ function buildBop(config = DEFAULT_CONFIG) {
   for (const cavity of activeCavities(config)) {
     for (const side of ["L", "R"]) {
       const f = frameFor(config, cavity, side);
-      assemblies.push(...bonnetAssemblies(cavity, side, config.stack));
-      components.push(...bonnetInstances(cavity, side, f, config), ...ramInstances(cavity, side, f, config));
+      assemblies.push(...bonnetAssemblies(cavity, side, config));
+      components.push(...bonnetInstances(cavity, side, f, config), ...boosterInstances(cavity, side, f, config), ...ramInstances(cavity, side, f, config));
     }
   }
   const byId = new Map(components.map((c) => [c.id, c]));
@@ -4215,9 +4875,9 @@ var STOP = /* @__PURE__ */ new Set(["the", "a", "an", "me", "show", "of", "all",
 var stem = (t) => t.length > 3 && t.endsWith("s") && !t.endsWith("ss") ? t.slice(0, -1) : t;
 function haystack(c, ds) {
   const loc = c.cavity && c.side ? locationLabel(c.cavity, c.side, ds.config.stack) : "";
-  const pn = c.partNumber?.value ?? "";
-  const item = c.catalogItem !== void 0 ? `item ${c.catalogItem}` : "";
-  return norm([c.name, ...c.aliases, loc, pn, item, c.id].join(" "));
+  const pn2 = c.partNumber?.value ?? "";
+  const item = [c.catalogItem !== void 0 ? `item ${c.catalogItem}` : "", c.itemLabel ? `item ${c.itemLabel}` : ""].join(" ");
+  return norm([c.name, ...c.aliases, loc, pn2, item, c.id].join(" "));
 }
 var LOCATION_ORDER = ["upper-L", "upper-R", "lower-L", "lower-R"];
 function locationRank(c) {
@@ -4232,9 +4892,9 @@ function searchComponents(ds, query, limit = 12) {
   const hits2 = [];
   for (const c of ds.components) {
     const h = haystack(c, ds);
-    const pn = c.partNumber?.value.toLowerCase() ?? "";
+    const pn2 = c.partNumber?.value.toLowerCase() ?? "";
     let score = 0;
-    if (pn && q.replace(/\s/g, "").includes(pn.replace(/\s/g, ""))) score += 100;
+    if (pn2 && q.replace(/\s/g, "").includes(pn2.replace(/\s/g, ""))) score += 100;
     const itemMatch = q.match(/\bitem\s*(\d{1,2})\b/);
     if (itemMatch && c.catalogItem === Number(itemMatch[1])) score += 60;
     let matched = 0;
@@ -4409,12 +5069,20 @@ var MessageSchema = z.object({
 var RamKindSchema = z.union([
   z.object({ type: z.literal("pipe"), pipeSize: z.string().refine((s) => SELECTABLE_PIPE_SIZES.includes(s)) }),
   z.object({ type: z.literal("blind") }),
-  z.object({ type: z.literal("sbr") })
+  z.object({ type: z.literal("sbr") }),
+  z.object({ type: z.literal("isr") }),
+  z.object({ type: z.literal("vbr"), id: z.string().refine((id) => VBR_ROWS.some((r) => r.id === id)) }),
+  z.object({ type: z.literal("flexpacker"), id: z.string().refine((id) => FLEXPACKER_NR_ROWS.some((r) => r.id === id)) })
 ]);
+var BonnetTypeSchema = z.enum(["standard", "largeBoreShear", "tandemBooster"]);
 var RequestSchema = z.object({
   message: z.string().trim().min(1).max(2e3),
   history: z.array(MessageSchema).max(20).default([]),
-  config: z.object({ stack: z.enum(["double", "single"]), rams: z.object({ upper: RamKindSchema, lower: RamKindSchema }) })
+  config: z.object({
+    stack: z.enum(["double", "single"]),
+    rams: z.object({ upper: RamKindSchema, lower: RamKindSchema }),
+    bonnets: z.object({ upper: BonnetTypeSchema, lower: BonnetTypeSchema }).default({ upper: "standard", lower: "standard" })
+  })
 });
 var corpusCache = /* @__PURE__ */ new Map();
 function datasetCorpus(ds) {
@@ -4432,8 +5100,8 @@ function datasetCorpus(ds) {
   return corpus;
 }
 function describeConfig(c) {
-  const ram = (k) => k.type === "pipe" ? `${k.pipeSize} in pipe rams` : k.type === "blind" ? "blind rams" : "shearing blind rams";
-  return c.stack === "double" ? `double BOP; upper cavity: ${ram(c.rams.upper)}; lower cavity: ${ram(c.rams.lower)}` : `single BOP with ${ram(c.rams.upper)}`;
+  const cavity = (id) => `${ramKindLabel(c.rams[id])}, ${BONNET_TYPE_LABEL[c.bonnets[id]].toLowerCase()}`;
+  return c.stack === "double" ? `double BOP; upper cavity: ${cavity("upper")}; lower cavity: ${cavity("lower")}` : `single BOP with ${cavity("upper")}`;
 }
 async function handleAssistantRequest(bodyText, clientKey = "local") {
   if (!process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_AUTH_TOKEN) {

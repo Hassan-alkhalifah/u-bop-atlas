@@ -9,7 +9,7 @@ An interactive, educational 3D atlas of the Cameron U ram-type BOP, 13-5/8 in, 1
 ```bash
 npm install
 npm run dev          # http://localhost:5173
-npm test             # 53 unit tests: data integrity, search, assistant, grounding guard, API loop
+npm test             # 87 unit tests: data integrity, options, share links, export, lessons, quiz, assistant, API loop
 npm run build        # validate data -> typecheck -> bundle API -> production build
 ```
 
@@ -25,12 +25,15 @@ The assistant works without any key: it falls back to a rule-based offline assis
 - System filters: structure, rams, hydraulics, seals, locking, fasteners.
 - A connection graph. Solid lines are interfaces named or shown in the catalog; dashed lines are inferred and labelled as such.
 - Animations: close and lock, unlock and open, piston to rod to ram, and opening and closing the bonnets for a ram change. The order of events follows catalog p.6; strokes are approximations.
-- Configuration: double or single BOP, and the ram type per cavity (every 13-5/8" pipe ram size with a complete catalog row, blind ram, or shearing blind ram).
-- A built-in assistant that works with no API key. Type `help` for every command, with tap-to-run examples. It finds and explains parts, hides and isolates parts or whole systems, explodes (with percentages or a single bonnet), plays animations, changes paint, quality and the ram configuration, lists assemblies and systems, counts parts, and lists recommended spares, the rebuild kit, the sources and what is not documented. It understands follow-ups about the selected part ("hide it", "its part number"), suggests near matches for typos, and offers follow-up chips. Every fact comes from the sourced data.
+- Configuration: double or single BOP, and per cavity the ram type and the bonnet type. Rams: every 13-5/8" pipe ram size with a complete catalog row, blind ram, shearing blind ram (SBR), interlocking shear ram (ISR, p.52), the four VBR-II ranges and the extended range high temperature VBR-II (p.54), and the three FLEXPACKER-NR ranges (p.55). Bonnets: standard (p.12), large-bore shear bonnets (p.18, with their own operating data from p.7 and kit 644860-07) and tandem boosters (p.20-21, 26 listed parts, with the lock moved to the outside end of the booster). Where the catalog leaves a gap, the app says so: for example the FLEXPACKER-NR ram body has no part number, and two of its top seals are marked as inferred.
+- Share links. The Share button copies a link that reopens the exact view: setup, selected part, explode, hidden and isolated parts, x-ray, paint and camera angle. Links are validated on load; anything the catalog or the dataset does not know is ignored.
+- Parts-list export. Export the whole BOP, the assembly of the selected part, the parts visible now, or the recommended spares, as an Excel file (parts by location, bill of materials, sources, about) or a printable sheet with a picture of the current view (save it as PDF from the print dialog). Every row carries its part number, evidence level and source page.
+- Learn tab. Four guided lessons (a tour of the BOP, how a ram seals, shearing options, anatomy of a bonnet) move the camera, isolate parts and play animations step by step. Lessons carry no facts of their own: each fact is looked up from the sourced dataset and shows its source. Two quizzes ("Find the part" by tapping the model, "Name the part" from four choices) use the parts of the current setup and remember the best score on the device.
+- A built-in assistant that works with no API key. Type `help` for every command, with tap-to-run examples. It can also change ram and bonnet types ("lower rams ISR", "large bore shear bonnets"), start lessons and quizzes, and open the share and export windows. It finds and explains parts, hides and isolates parts or whole systems, explodes (with percentages or a single bonnet), plays animations, changes paint, quality and the ram configuration, lists assemblies and systems, counts parts, and lists recommended spares, the rebuild kit, the sources and what is not documented. It understands follow-ups about the selected part ("hide it", "its part number"), suggests near matches for typos, and offers follow-up chips. Every fact comes from the sourced data.
 - Optional Claude assistant (Vercel deploy only) with viewer tools (`select_component`, `isolate_components`, `hide_components`, `explode_assembly`, `focus_camera`, `show_system`, `show_connections`, `play_animation`, `set_xray`). Claude's answers pass a grounding filter: any part number or measured value that the knowledge tools did not return is removed from the answer.
 - Part shapes and arrangement follow the catalog's exploded view and 3D view (p.9) and section (p.6): a vertical body column with a housing for each ram set; a stepped bonnet with its bolt heads; an octagonal intermediate flange pierced by the two ram-change cylinders; a round-flanged locking-screw housing on short studs; a square-drive locking screw. Sizes remain approximations (tier T3).
 - Studio lighting built in code (no HDR download), soft contact shadows, and ambient occlusion in "High quality" rendering. Phones default to "Standard". Paint colour (neutral grey or the red of the catalog render) and surface finishes are illustrative only.
-- Desktop and phone layouts.
+- Desktop and phone layouts. On phones the Parts, Details, Assistant and Learn panels open as bottom sheets with the model still visible above.
 
 ## How accuracy is enforced
 

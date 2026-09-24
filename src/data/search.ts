@@ -17,7 +17,7 @@ const stem = (t: string) => (t.length > 3 && t.endsWith('s') && !t.endsWith('ss'
 function haystack(c: ComponentInstance, ds: BopDataset): string {
   const loc = c.cavity && c.side ? locationLabel(c.cavity, c.side, ds.config.stack) : ''
   const pn = c.partNumber?.value ?? ''
-  const item = c.catalogItem !== undefined ? `item ${c.catalogItem}` : ''
+  const item = [c.catalogItem !== undefined ? `item ${c.catalogItem}` : '', c.itemLabel ? `item ${c.itemLabel}` : ''].join(' ')
   return norm([c.name, ...c.aliases, loc, pn, item, c.id].join(' '))
 }
 

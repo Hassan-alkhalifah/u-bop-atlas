@@ -5,6 +5,7 @@ import { SYSTEMS } from '../data/systems'
 import { claimText } from './describe'
 import { configuration, greeting, help, HELP_SUGGESTIONS, reset, viewSettings } from './intents/general'
 import { count, gaps, kits, listing, procedures, sources, spares } from './intents/knowledge'
+import { learn, shareExport } from './intents/learn'
 import { animation, explode, stop } from './intents/motion'
 import { connections, describePart, isolateHide, unhideAll } from './intents/parts'
 import { REFERS_TO_SELECTION, systemFrom } from './parse'
@@ -28,6 +29,8 @@ const showSystem: Intent = ({ t }) => {
 const INTENTS: Intent[] = [
   help,
   greeting,
+  learn,
+  shareExport,
   reset,
   stop,
   viewSettings,

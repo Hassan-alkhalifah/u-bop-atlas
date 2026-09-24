@@ -3,7 +3,9 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { z } from 'zod'
 import { buildBop } from '../src/data/build-bop'
-import { SELECTABLE_PIPE_SIZES } from '../src/data/catalog'
+import { BONNET_TYPE_LABEL } from '../src/data/build-bonnet'
+import { ramKindLabel } from '../src/data/build-ram'
+import { FLEXPACKER_NR_ROWS, SELECTABLE_PIPE_SIZES, VBR_ROWS } from '../src/data/catalog'
 import { NOT_AVAILABLE } from '../src/data/sources'
 import type { BopConfig } from '../src/data/types'
 import type { Command } from '../src/state/commands'
@@ -43,12 +45,21 @@ const RamKindSchema = z.union([
   z.object({ type: z.literal('pipe'), pipeSize: z.string().refine((s) => SELECTABLE_PIPE_SIZES.includes(s)) }),
   z.object({ type: z.literal('blind') }),
   z.object({ type: z.literal('sbr') }),
+  z.object({ type: z.literal('isr') }),
+  z.object({ type: z.literal('vbr'), id: z.string().refine((id) => VBR_ROWS.some((r) => r.id === id)) }),
+  z.object({ type: z.literal('flexpacker'), id: z.string().refine((id) => FLEXPACKER_NR_ROWS.some((r) => r.id === id)) }),
 ])
+
+const BonnetTypeSchema = z.enum(['standard', 'largeBoreShear', 'tandemBooster'])
 
 const RequestSchema = z.object({
   message: z.string().trim().min(1).max(2000),
   history: z.array(MessageSchema).max(20).default([]),
-  config: z.object({ stack: z.enum(['double', 'single']), rams: z.object({ upper: RamKindSchema, lower: RamKindSchema }) }),
+  config: z.object({
+    stack: z.enum(['double', 'single']),
+    rams: z.object({ upper: RamKindSchema, lower: RamKindSchema }),
+    bonnets: z.object({ upper: BonnetTypeSchema, lower: BonnetTypeSchema }).default({ upper: 'standard', lower: 'standard' }),
+  }),
 })
 
 export interface AssistantResponseBody {
@@ -78,8 +89,8 @@ function datasetCorpus(ds: BopDataset): string {
 }
 
 function describeConfig(c: BopConfig): string {
-  const ram = (k: BopConfig['rams']['upper']) => (k.type === 'pipe' ? `${k.pipeSize} in pipe rams` : k.type === 'blind' ? 'blind rams' : 'shearing blind rams')
-  return c.stack === 'double' ? `double BOP; upper cavity: ${ram(c.rams.upper)}; lower cavity: ${ram(c.rams.lower)}` : `single BOP with ${ram(c.rams.upper)}`
+  const cavity = (id: 'upper' | 'lower') => `${ramKindLabel(c.rams[id])}, ${BONNET_TYPE_LABEL[c.bonnets[id]].toLowerCase()}`
+  return c.stack === 'double' ? `double BOP; upper cavity: ${cavity('upper')}; lower cavity: ${cavity('lower')}` : `single BOP with ${cavity('upper')}`
 }
 
 export async function handleAssistantRequest(bodyText: string, clientKey = 'local'): Promise<{ status: number; body: AssistantResponseBody }> {
@@ -96,7 +107,7 @@ export async function handleAssistantRequest(bodyText: string, clientKey = 'loca
     return { status: 400, body: { ok: false, error: 'bad_request', message: 'The request was not valid.' } }
   }
 
-  const ds = buildBop(parsed.config as BopConfig)
+  const ds = buildBop(parsed.config)
   const client = new Anthropic()
   const messages: Anthropic.Beta.BetaMessageParam[] = [
     ...parsed.history.map((m) => ({ role: m.role, content: m.content })),

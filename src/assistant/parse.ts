@@ -75,13 +75,20 @@ export function parseAmount(t: string): number | null {
   return null
 }
 
-/** Pipe size in inches as the catalog string ("5.000"); 'unknown' when a size is given but not in the catalog. */
-export function parsePipeSize(t: string): string | 'unknown' | null {
+/** A pipe size written as 5", 5 in, 3 1/2 inch, 3-1/2" or 3.5 inch, in inches; null when none is given. */
+export function parseSizeInches(t: string): number | null {
   const m = t.match(/(\d+)(?:\s*[- ]\s*(\d)\/(\d)|\.(\d+))?\s*(?:"|in(?:ch(?:es)?)?\b|pipe)/) ?? t.match(/pipe\s*(\d+)(?:\s*[- ]\s*(\d)\/(\d)|\.(\d+))?/)
   if (!m) return null
   let v = Number(m[1])
   if (m[2] && m[3]) v += Number(m[2]) / Number(m[3])
   if (m[4]) v = Number(`${m[1]}.${m[4]}`)
+  return v
+}
+
+/** Pipe size in inches as the catalog string ("5.000"); 'unknown' when a size is given but not in the catalog. */
+export function parsePipeSize(t: string): string | 'unknown' | null {
+  const v = parseSizeInches(t)
+  if (v === null) return null
   const key = v.toFixed(3)
   return SELECTABLE_PIPE_SIZES.includes(key) ? key : 'unknown'
 }
